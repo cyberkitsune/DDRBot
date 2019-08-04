@@ -1,5 +1,6 @@
 from html.parser import HTMLParser
 
+
 class DDRRival(object):
     name = None
     ddrid = 0
@@ -10,6 +11,7 @@ class DDRRival(object):
 
     def __str__(self):
         return "%i: %s [DDR-CODE %i]" % (self.position, self.name, self.ddrid)
+
 
 class DDRRivalTableParser(HTMLParser):
     currentTag = None
@@ -50,3 +52,6 @@ class DDRRivalTableParser(HTMLParser):
 
             if self.currentClass == 'code':
                 self.currentRival.ddrid = int(data)
+
+    def error(self, message):
+        raise Exception("Error parsing HTML: %s" % message)
