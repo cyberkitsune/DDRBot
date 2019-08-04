@@ -13,6 +13,7 @@ class DDRBotClient(discord.Client):
         self.generic_eamuse_session = session_id
         self.command_handlers['help'] = self.help_command
         self.command_handlers['lookup'] = self.lookup_command
+        self.command_handlers['search'] = self.search_command
         super().__init__()
 
     async def on_ready(self):
@@ -55,6 +56,24 @@ class DDRBotClient(discord.Client):
         else:
             await message.channel.send("```\n%s\t%i```" % (player.name, player.ddrid))
 
+
+    async def search_command(self, message):
+        args = message.content.split(" ",1)
+        if len(args) < 2:
+            await message.channel.send("You didn't specify a name to search")
+            return
+        name = args[1]
+        await message.channel.send("Looking up players with names like %s..." % name)
+        api = EAGate(self.generic_eamuse_session)
+        ddr = DDRApi(api)
+
+        players = ddr.lookup_rivals(name)
+        if len(players) == 0:
+            await message.channel.send("Unable to find a players with a name like %s..." % name)
+        else:
+            userlist = ''.join(["%s\t%i\n" % (x.name, x.ddrid) for x in players])
+            user_message = "Found Users:\n```%s```" % userlist
+            await message.channel.send(user_message)
 
 
 

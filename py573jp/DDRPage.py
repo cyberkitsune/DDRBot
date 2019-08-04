@@ -29,8 +29,8 @@ class DDRApi():
 
     def lookup_rival(self, rival_id):
         """
-
-        :param rival_id:
+        Searches for a rival by ddr-id
+        :param rival_id: ID of rival to lookup
         :return: Rival if found or none
         :rtype: DDRRivalTableParser.DDRRival
         """
@@ -44,3 +44,18 @@ class DDRApi():
             return None
         else:
             return rival_parser.rivals[0]
+
+    def lookup_rivals(self, search_query):
+        """
+        Searches for a user by name
+        :param search_query: Name to search
+        :return: List of rivals
+        :rtype: List[DDRRivalTableParser.DDRRival]
+        """
+        uri = 'https://p.eagate.573.jp/game/ddr/ddra20/p/rival/kensaku.html?mode=1&name=%s&area=-1&slot=' % search_query
+        html = self.eagate.get_page(uri)
+
+        rival_parser = DDRRivalTableParser.DDRRivalTableParser()
+        rival_parser.feed(html)
+
+        return rival_parser.rivals
