@@ -8,13 +8,23 @@ class DDRRival(object):
     def __init__(self, position):
         self.position = position
 
-class DDRRivalTableParser(HTMLParser):
+    def __str__(self):
+        return "%i: %s [DDR-CODE %i]" % (self.position, self.name, self.ddrid)
 
+class DDRRivalTableParser(HTMLParser):
     currentTag = None
     currentPosition = 0
     currentClass = None
     currentRival = None
     rivals = []
+
+    def __init__(self):
+        self.currentTag = None
+        self.currentPosition = 0
+        self.currentClass = None
+        self.currentRival = None
+        self.rivals = []
+        super().__init__()
 
     def handle_starttag(self, tag, attrs):
         self.currentTag = tag
@@ -39,4 +49,4 @@ class DDRRivalTableParser(HTMLParser):
                 self.currentRival.name = data
 
             if self.currentClass == 'code':
-                self.currentRival.ddrid = data
+                self.currentRival.ddrid = int(data)
