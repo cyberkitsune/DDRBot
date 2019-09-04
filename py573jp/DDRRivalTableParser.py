@@ -12,6 +12,12 @@ class DDRRival(object):
     def __str__(self):
         return "%i: %s [DDR-CODE %i]" % (self.position, self.name, self.ddrid)
 
+    def __eq__(self, other):
+        return self.ddrid == other.ddrid
+
+    def __ne__(self, other):
+        return self.ddrid != other.ddrid
+
 
 class DDRRivalTableParser(HTMLParser):
     currentTag = None
