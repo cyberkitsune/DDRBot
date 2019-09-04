@@ -1,1 +1,3 @@
 requests
+discord.py
+sqlalchemy
