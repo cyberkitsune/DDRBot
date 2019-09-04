@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io
+import discord, sys, asyncio, datetime, io, os, json
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -32,6 +32,10 @@ class DDRBotClient(discord.Client):
 
     async def on_ready(self):
         print("DDRBot is ready!")
+        if os.path.exists("linked.json"):
+            print("Loaded saved e-amusement accounts!")
+            with open("linked.json", 'r') as f:
+                self.linked_eamuse = json.load(f)
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
@@ -103,7 +107,7 @@ class DDRBotClient(discord.Client):
 
     async def link_command(self, message):
         if not isinstance(message.channel, discord.DMChannel):
-            if message.author.id not in self.linked_eamuse:
+            if str(message.author.id) not in self.linked_eamuse:
                 await message.channel.send("Your e-amusement account is not linked!")
                 await message.channel.send("Use this command in a DM with me to link your e-amusement account! **Do not use this command in public**")
                 await message.channel.send("Usage:\n```%slink [username] [password] [otp (optional)]```" % self.command_prefix)
@@ -122,18 +126,22 @@ class DDRBotClient(discord.Client):
             eal.login(args[1], args[2])
 
         if eal.logged_in:
-            self.linked_eamuse[message.author.id] = eal.token
+            self.linked_eamuse[str(message.author.id)] = eal.token
             await message.channel.send("Logged in!\nToken (do not share):\n```%s```" % eal.token)
+            with open("linked.json", 'w') as f:
+                json.dump(self.linked_eamuse, f)
         else:
             await message.channel.send("Unable to log in!")
 
     async def show_screenshots(self, message):
-        if message.author.id not in self.linked_eamuse:
+        if str(message.author.id) not in self.linked_eamuse:
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
             return
 
-        eal = EALink(self.linked_eamuse[message.author.id])
-        self.linked_eamuse[message.author.id] = eal.login()
+        eal = EALink(self.linked_eamuse[str(message.author.id)])
+        self.linked_eamuse[str(message.author.id)] = eal.login()
+        with open("linked.json", 'w') as f:
+            json.dump(self.linked_eamuse, f)
         photos = eal.get_screenshot_list()
         if len(photos) == 0:
             await message.channel.send("You don't have any screenshots saved from the last day. Go out and get some scores!")
