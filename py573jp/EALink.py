@@ -32,7 +32,7 @@ class EALink(object):
             if js['status']:
                 self.token = js['login_token']
                 self.logged_in = True
-                self.cookies = (self.session.cookies['_ga'], self.session.cookies['aqblog'])
+                self.cookies = (self.session.cookies['aqbsess'], self.session.cookies['aqblog'])
                 return self.token
             else:
                 raise Exception("Unable to log in!")
@@ -43,7 +43,7 @@ class EALink(object):
             if js['status']:
                 self.token = js['login_token']
                 self.logged_in = True
-                self.cookies = (self.session.cookies['_ga'], self.session.cookies['aqblog'])
+                self.cookies = (self.session.cookies['aqbsess'], self.session.cookies['aqblog'])
                 return self.token
             else:
                 raise Exception("Unable to log in! Check your username / password / OTP. Server: %s" % js['message'])

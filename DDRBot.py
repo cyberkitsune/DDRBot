@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json
+import discord, sys, asyncio, datetime, io, os, json, traceback
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -55,7 +55,7 @@ class DDRBotClient(discord.Client):
                 try:
                     await self.command_handlers[command_name](message)
                 except Exception as ex:
-                    await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s: %s```" % (type(ex).__name__, ex))
+                    await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
             else:
                 await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
 
@@ -127,7 +127,7 @@ class DDRBotClient(discord.Client):
 
         if eal.logged_in:
             self.linked_eamuse[str(message.author.id)] = [eal.cookies[0], eal.cookies[1]]
-            await message.channel.send("Logged in!\nToken (do not share):\n```%s```" % eal.token)
+            await message.channel.send("Logged in!\nYour cookies (for debug):\n```aqbsess=%s aqblog=%s```" % eal.cookies)
             with open("linked.json", 'w') as f:
                 json.dump(self.linked_eamuse, f)
         else:
