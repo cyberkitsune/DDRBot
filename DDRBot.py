@@ -55,7 +55,7 @@ class DDRBotClient(discord.Client):
                 try:
                     await self.command_handlers[command_name](message)
                 except Exception as ex:
-                    await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n %s```" % ex)
+                    await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s: %s```" % (type(ex).__name__, ex))
             else:
                 await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
 
