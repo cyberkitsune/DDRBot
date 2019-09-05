@@ -126,7 +126,7 @@ class DDRBotClient(discord.Client):
             eal.login(args[1], args[2])
 
         if eal.logged_in:
-            self.linked_eamuse[str(message.author.id)] = eal.token
+            self.linked_eamuse[str(message.author.id)] = [eal.cookies[0], eal.cookies[1]]
             await message.channel.send("Logged in!\nToken (do not share):\n```%s```" % eal.token)
             with open("linked.json", 'w') as f:
                 json.dump(self.linked_eamuse, f)
@@ -136,12 +136,10 @@ class DDRBotClient(discord.Client):
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
+            await message.channel.send("Once linked, this command can post your in-game score screenshots to discord.")
             return
 
-        eal = EALink(self.linked_eamuse[str(message.author.id)])
-        self.linked_eamuse[str(message.author.id)] = eal.login()
-        with open("linked.json", 'w') as f:
-            json.dump(self.linked_eamuse, f)
+        eal = EALink(cookies=(self.linked_eamuse[str(message.author.id)][0], self.linked_eamuse[str(message.author.id)][1]))
         photos = eal.get_screenshot_list()
         if len(photos) == 0:
             await message.channel.send("You don't have any screenshots saved from the last day. Go out and get some scores!")

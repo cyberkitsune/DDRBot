@@ -9,14 +9,22 @@ class EALink(object):
     session = None
     token = None
     logged_in = False
+    cookies = None
 
-    def __init__(self, token=None):
+    def __init__(self, token=None, cookies=None):
         self.token = token
+        self.cookies = cookies
 
     def login(self, username=None, password=None, otp=None):
         if self.session is not None:
             return
         self.session = requests.session()
+        if self.cookies is not None:
+            if len(self.cookies) < 2:
+                raise Exception("EALink cookie jar too small!")
+            self.session.cookies['_ga'] = self.cookies[0]
+            self.session.cookies['aqblog'] = self.cookies[1]
+            return
         if self.token is not None:
             data = {'method': "login_token", 'login_token': self.token, 'format': "json"}
             r = self.session.post("%s/user/login.php" % base_url, data=data, headers=headers)
@@ -24,6 +32,7 @@ class EALink(object):
             if js['status']:
                 self.token = js['login_token']
                 self.logged_in = True
+                self.cookies = (self.session.cookies['_ga'], self.session.cookies['aqblog'])
                 return self.token
             else:
                 raise Exception("Unable to log in!")
@@ -34,6 +43,7 @@ class EALink(object):
             if js['status']:
                 self.token = js['login_token']
                 self.logged_in = True
+                self.cookies = (self.session.cookies['_ga'], self.session.cookies['aqblog'])
                 return self.token
             else:
                 raise Exception("Unable to log in! Check your username / password / OTP. Server: %s" % js['message'])
