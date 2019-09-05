@@ -154,6 +154,10 @@ class DDRBotClient(discord.Client):
 
 
     async def monitor_task(self):
+        if len(self.reporting_channels) == 0:
+            await asyncio.sleep(60)
+            self.loop.create_task(self.monitor_task())
+            return
         for arcade in self.monitoring_arcades:
             new_users = []
             api = EAGate(arcade.api_key)
