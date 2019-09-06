@@ -4,6 +4,7 @@ import discord, sys, asyncio, datetime, io, os, json, traceback
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
+from py573jp.Exceptions import EALinkException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
 
@@ -60,6 +61,11 @@ class DDRBotClient(discord.Client):
             if command_name in self.command_handlers:
                 try:
                     await self.command_handlers[command_name](message)
+                except EALinkException as ex:
+                    if ex.jscontext is not None:
+                        await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```\nError JSON```\n%s```" % (ex, ex.jscontext))
+                    else:
+                        await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
                 except Exception as ex:
                     await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
             else:
