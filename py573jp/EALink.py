@@ -1,5 +1,7 @@
 import requests, json
 
+from .Exceptions import EALinkException
+
 base_url = "https://aqb.s.konaminet.jp/aqb/"
 user_agent = "jp.konami.eam.link (Pixel2; Android 9.0; in-app; 20; app-version; 3.5.0)"
 headers = {'User-Agent': user_agent}
@@ -35,7 +37,7 @@ class EALink(object):
                 self.cookies = (self.session.cookies['aqbsess'], self.session.cookies['aqblog'])
                 return self.token
             else:
-                raise Exception("Unable to log in!")
+                raise EALinkException("Unable to log in!", js)
         else:
             data = {'username': username, 'password': password, 'otp_password': otp, 'format': "json"}
             r = self.session.post("%s/user/login.php" % base_url, data=data, headers=headers)
@@ -46,7 +48,7 @@ class EALink(object):
                 self.cookies = (self.session.cookies['aqbsess'], self.session.cookies['aqblog'])
                 return self.token
             else:
-                raise Exception("Unable to log in! Check your username / password / OTP. Server: %s" % js['message'])
+                raise EALinkException("Unable to log in! Check your username / password / OTP. Server: %s" % js['message'], js)
 
 
     def get_screenshot_list(self):
@@ -56,6 +58,8 @@ class EALink(object):
         r = self.session.get("%s/blog/post/webdav/index.php" % base_url, headers=headers)
         photos = []
         js = json.loads(r.text)
+        if 'list' not in js:
+            raise EALinkException("Unable to fetch photos! Maybe you've been logged out?", js)
         for photo in js['list']:
             photos.append(photo)
 
