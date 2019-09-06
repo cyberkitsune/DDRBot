@@ -28,7 +28,8 @@ def start(update, context):
     context.bot.send_message(chat_id=update.message.chat_id, parse_mode='Markdown', text="Hello! I'm bemani screenshot bot! I can help you with your e-amusement screenshots\n\n"
                                                                   "*Commands*\n/start - This text!\n"
                                                                   "/link - Link your e-amusement account\n"
-                                                                  "/screenshots - See your unexpired Bemani Screenshots")
+                                                                  "/screenshots - See your unexpired Bemani Screenshots\n"
+                                                                                         "\nBot made by @CyberKitsune")
 
 def link(update, context):
     global linked_accounts
@@ -62,6 +63,7 @@ def screenshots(update, context):
     print("%s requested screenshots!" % update.message.from_user.username)
     if update.message.from_user.username not in linked_accounts:
         context.bot.send_message(chat_id=update.message.chat_id, text="You're not logged in! Use /link to link your e-amusement account!")
+        print("%s wasn't logged in!" % update.message.from_user.username)
         return
 
     eal = EALink(cookies=(linked_accounts[update.message.from_user.username][0],linked_accounts[update.message.from_user.username][1]))
@@ -75,9 +77,11 @@ def screenshots(update, context):
     if len(shots) == 0:
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text="You have no unexpired screenshots right now! Go out and get some scores!")
+        print("%s has no screenshots!" % update.message.from_user.username)
         return
 
     context.bot.send_message(chat_id=update.message.chat_id, text="Fetching your %i screenshots..." % len(shots))
+    print("%s is downloading %i screenshots" % (update.message.from_user.username, len(shots)))
     context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
     photo_datas = []
     for photo in shots:
