@@ -39,6 +39,7 @@ def link(update, context):
         context.bot.send_message(chat_id=update.message.chat_id, parse_mode='Markdown', text="Use this command to link your e-amusement account!\n"
                                                                                              "Usage:\n"
                                                                                              "```link [username] [password] [OTP (optional)]```")
+        print("%s didn't link..." % update.message.from_user.username)
         return
     username = args[1]
     password = args[2]
@@ -53,9 +54,11 @@ def link(update, context):
     if eal.logged_in:
         linked_accounts[update.message.from_user.username] = (eal.cookies[0], eal.cookies[1])
         context.bot.send_message(chat_id=update.message.chat_id, text="Successfully logged in!")
+        print("%s successfully linked!" % update.message.from_user.username)
         save_accounts()
     else:
         context.bot.send_message(chat_id=update.message.chat_id, text="Couldn't log in!")
+        print("%s had login issues!" % update.message.from_user.username)
 
 
 def screenshots(update, context):
