@@ -62,6 +62,8 @@ class EALink(object):
             raise EALinkException("Can't parse response! Server Issues?", r.text)
         if 'list' not in js:
             raise EALinkException("Unable to fetch photos! Maybe you've been logged out?", js)
+        if js['list'] is None:
+            raise EALinkException("Can't parse response! Server Issues?", r.text)
         for photo in js['list']:
             photos.append(photo)
 
