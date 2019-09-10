@@ -58,6 +58,8 @@ class EALink(object):
         r = self.session.get("%s/blog/post/webdav/index.php" % base_url, headers=headers)
         photos = []
         js = json.loads(r.text)
+        if js is None:
+            raise EALinkException("Can't parse response! Server Issues?", r.text)
         if 'list' not in js:
             raise EALinkException("Unable to fetch photos! Maybe you've been logged out?", js)
         for photo in js['list']:
