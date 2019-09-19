@@ -167,7 +167,7 @@ class DDRBotClient(discord.Client):
             for fileset in screenshot_files:
                 await message.channel.send(files=fileset)
         else:
-            await message.channel.send("Your screenshots for the last 24h:", files=screenshot_files)
+            await message.channel.send("Your screenshots for the last 48h:", files=screenshot_files)
 
 
     async def monitor_task(self):
