@@ -163,7 +163,7 @@ class DDRBotClient(discord.Client):
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
-            await message.channel.send("Your screenshots for the last 24h:")
+            await message.channel.send("Your screenshots for the last 48h:")
             for fileset in screenshot_files:
                 await message.channel.send(files=fileset)
         else:
