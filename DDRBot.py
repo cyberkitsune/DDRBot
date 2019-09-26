@@ -14,6 +14,7 @@ def divide_chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
+
 class DDRBotClient(discord.Client):
     admin_users = []
     command_handlers = {}
@@ -21,6 +22,7 @@ class DDRBotClient(discord.Client):
     reporting_channels = []
     monitoring_arcades: List[DDRArcadeMonitor] = []
     linked_eamuse = {}
+    shown_screenshots = {}
     generic_eamuse_session = None
     task_created = False
     lastrun = None
@@ -150,13 +152,33 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
             await message.channel.send("Once linked, this command can post your in-game score screenshots to discord.")
             return
-
+        showAll = 'all' in message
         eal = EALink(cookies=(self.linked_eamuse[str(message.author.id)][0], self.linked_eamuse[str(message.author.id)][1]))
         photos = eal.get_screenshot_list()
         if len(photos) == 0:
             await message.channel.send("You don't have any screenshots saved from the last day. Go out and get some scores!")
             return
-        await message.channel.send("Fetching your last %i scores, please wait..." % len(photos))
+        if not showAll:
+            if message.author.id not in self.shown_screenshots:
+                self.shown_screenshots[message.author.id] = []
+            newOnly = []
+            for photo in photos:
+                key = "%s%s" % (photo['game_name'], photo['last_play_date'])
+                if key not in self.shown_screenshots[message.author.id]:
+                    # New screenshot
+                    newOnly.append(photo)
+                    self.shown_screenshots[message.author.id].append(key)
+                else:
+                    continue
+            if len(newOnly) > 0:
+                photos = newOnly
+            else:
+                await message.channel.send("No new screenshots since the last time you ran `%sscores`"
+                                           "\nIf you'd like to see all your screenshots again please run `%sscores all`"
+                                           % (self.command_prefix, self.command_prefix))
+                return
+
+        await message.channel.send("Fetching %i scores from e-amusement, please wait..." % len(photos))
         screenshot_files = []
         for photo in photos:
             data = eal.get_jpeg_data_for(photo['file_path'])
