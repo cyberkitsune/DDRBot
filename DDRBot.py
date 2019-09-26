@@ -152,7 +152,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
             await message.channel.send("Once linked, this command can post your in-game score screenshots to discord.")
             return
-        showAll = 'all' in message
+        showAll = 'all' in message.content
         eal = EALink(cookies=(self.linked_eamuse[str(message.author.id)][0], self.linked_eamuse[str(message.author.id)][1]))
         photos = eal.get_screenshot_list()
         if len(photos) == 0:
