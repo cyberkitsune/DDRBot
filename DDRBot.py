@@ -327,6 +327,7 @@ class DDRBotClient(discord.Client):
                     self.auto_users[user_id] = last_time
                     user = self.get_user(int(user_id))
                     if user is None:
+                        print("Auto warning: can't find user %s" % user_id)
                         continue
                     channel = user.dm_channel
                     if channel is None:
