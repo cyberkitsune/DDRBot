@@ -26,6 +26,9 @@ class DDRBotClient(discord.Client):
     generic_eamuse_session = None
     task_created = False
     lastrun = None
+    auto_task_created = False
+    auto_users = {}
+    warned_auto_error = []
     warned_no_users = False
 
     def __init__(self, session_id):
@@ -49,10 +52,17 @@ class DDRBotClient(discord.Client):
             print("Loaded shown history!")
             with open("shown.json", 'r') as f:
                 self.shown_screenshots = json.load(f)
+        if os.path.exists("auto.json"):
+            print("Loaded automode users!")
+            with open("auto.json", 'r') as f:
+                self.auto_users = json.load(f)
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
             print("Created monitoring thread!")
+        if not self.auto_task_created:
+            self.loop.create_task(self.auto_task())
+            self.auto_task_created = True
 
     async def on_message(self, message: discord.Message):
         if message.content.startswith(self.command_prefix):
@@ -242,7 +252,57 @@ class DDRBotClient(discord.Client):
         await asyncio.sleep(60)
         self.loop.create_task(self.monitor_task())
 
+    async def auto_task(self):
+        for user_id in self.auto_users:
+            last_time = int(self.auto_users[user_id])
+            # Fetch screenshots
+            photos = []
+            eal = None
+            try:
+                eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
+                photos = eal.get_screenshot_list()
+            except Exception as ex:
+                if user_id not in self.warned_auto_error:
+                    print("Exception fetching photos for %s\n%s" % (user_id, ex))
+                    self.warned_auto_error.append(user_id)
+                continue
+            else:
+                if user_id in self.warned_auto_error:
+                    self.warned_auto_error.remove(user_id)
 
+            if len(photos > 0):
+                photos = sorted(photos, key=lambda x: int(x['last_play_date']))  # Smallest first
+                new_photos = []
+                for photo in photos:
+                    if int(photo['last_play_date']) > last_time:
+                        new_photos.append(photo)
+                        last_time = int(photo['last_play_date'])
+
+                if len(new_photos) > 0:
+                    self.auto_users[user_id] = last_time
+                    user = self.get_user(user_id)
+                    if user is None:
+                        continue
+                    channel = user.dm_channel
+                    if channel is None:
+                        await user.create_dm()
+                        channel = user.dm_channel
+
+                    screenshot_files = []
+                    for photo in new_photos:
+                        data = eal.get_jpeg_data_for(photo['file_path'])
+                        screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
+                    if len(screenshot_files) > 10:
+                        screenshot_files = divide_chunks(screenshot_files, 10)
+                        for fileset in screenshot_files:
+                            await channel.send(files=fileset)
+                    else:
+                        await channel.send(files=screenshot_files)
+                    with open('auto.json', 'w') as f:
+                        json.dump(self.auto_users, f)
+
+        await asyncio.sleep(60)
+        self.loop.create_task(self.auto_task())
 
 
 if __name__ == "__main__":
