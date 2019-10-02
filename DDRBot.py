@@ -41,6 +41,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['addreport'] = self.addreport_command
         self.command_handlers['link'] = self.link_command
         self.command_handlers['scores'] = self.show_screenshots
+        self.command_handlers['auto'] = self.auto_command
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
@@ -65,6 +66,7 @@ class DDRBotClient(discord.Client):
         if not self.auto_task_created:
             self.loop.create_task(self.auto_task())
             self.auto_task_created = True
+            print("Created auto thread")
 
     async def on_message(self, message: discord.Message):
         if message.content.startswith(self.command_prefix):
