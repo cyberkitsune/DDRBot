@@ -172,7 +172,7 @@ class DDRBotClient(discord.Client):
                 await message.channel.send("You are not yet opted in to automatic screenshot DMs.")
             await message.channel.send("This command allows you to opt-in to having the bot send you your screenshots automatically in a DM.\n"
                                        "Usage:\n"
-                                       "```%sauto (on | off)" % self.command_prefix)
+                                       "```%sauto (on | off)```" % self.command_prefix)
             return
 
         if args[1] == 'on':
