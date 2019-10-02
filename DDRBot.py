@@ -26,6 +26,11 @@ class DDRBotClient(discord.Client):
     generic_eamuse_session = None
     task_created = False
     lastrun = None
+    auto_task_created = False
+    auto_users = {}
+    add_autos = []
+    remove_autos = []
+    warned_auto_error = []
     warned_no_users = False
 
     def __init__(self, session_id):
@@ -45,11 +50,21 @@ class DDRBotClient(discord.Client):
             print("Loaded saved e-amusement accounts!")
             with open("linked.json", 'r') as f:
                 self.linked_eamuse = json.load(f)
+        if os.path.exists("shown.json"):
+            print("Loaded shown history!")
+            with open("shown.json", 'r') as f:
+                self.shown_screenshots = json.load(f)
+        if os.path.exists("auto.json"):
+            print("Loaded automode users!")
+            with open("auto.json", 'r') as f:
+                self.auto_users = json.load(f)
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
             print("Created monitoring thread!")
-
+        if not self.auto_task_created:
+            self.loop.create_task(self.auto_task())
+            self.auto_task_created = True
 
     async def on_message(self, message: discord.Message):
         if message.content.startswith(self.command_prefix):
@@ -92,7 +107,6 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Hmm... I can't find that player!")
         else:
             await message.channel.send("```\n%s\t%i```" % (player.name, player.ddrid))
-
 
     async def search_command(self, message):
         args = message.content.split(" ",1)
@@ -147,6 +161,33 @@ class DDRBotClient(discord.Client):
         else:
             await message.channel.send("Unable to log in!")
 
+    async def auto_command(self, message):
+        args = message.content.split(" ")
+        if len(args) < 2:
+            if str(message.author.id) in self.auto_users:
+                await message.channel.send("You are opted-in to automatic screenshot DMs.")
+            else:
+                await message.channel.send("You are not yet opted in to automatic screenshot DMs.")
+            await message.channel.send("This command allows you to opt-in to having the bot send you your screenshots automatically in a DM.\n"
+                                       "Usage:\n"
+                                       "```%sauto (on | off)" % self.command_prefix)
+            return
+
+        if args[1] == 'on':
+            if str(message.author.id) not in self.auto_users:
+                self.add_autos.append(str(message.author.id))
+                await message.channel.send("You have opted-in to automatic screenshots! You will be DM'd them around a minute after taking them.")
+            else:
+                await message.channel.send("You are already opted-in to automatic screenshots. Opt-out by running `%sauto off`" % self.command_prefix)
+        elif args[1] == 'off':
+            if str(message.author.id) in self.auto_users:
+                self.remove_autos.append(str(message.author.id))
+                await message.channel.send("You are now opted-out of automatic screenshots. Opt back in by running `%sauto on`" % self.command_prefix)
+            else:
+                await message.channel.send("You're not opted-in to automatic screenshots. Opt in by running `%sauto on`" % self.command_prefix)
+        else:
+            await message.channel.send("Invalid syntax.\nUsage:\n```%sauto (on | off)```" % self.command_prefix)
+
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
@@ -159,15 +200,15 @@ class DDRBotClient(discord.Client):
             await message.channel.send("You don't have any screenshots saved from the last day. Go out and get some scores!")
             return
         if not showAll:
-            if message.author.id not in self.shown_screenshots:
-                self.shown_screenshots[message.author.id] = []
+            if str(message.author.id) not in self.shown_screenshots:
+                self.shown_screenshots[str(message.author.id)] = []
             newOnly = []
             for photo in photos:
                 key = "%s%s" % (photo['game_name'], photo['last_play_date'])
-                if key not in self.shown_screenshots[message.author.id]:
+                if key not in self.shown_screenshots[str(message.author.id)]:
                     # New screenshot
                     newOnly.append(photo)
-                    self.shown_screenshots[message.author.id].append(key)
+                    self.shown_screenshots[str(message.author.id)].append(key)
                 else:
                     continue
             if len(newOnly) > 0:
@@ -178,19 +219,22 @@ class DDRBotClient(discord.Client):
                                            % (self.command_prefix, self.command_prefix))
                 return
 
-        await message.channel.send("Fetching %i scores from e-amusement, please wait..." % len(photos))
+        await message.channel.send("Fetching %i new scores from e-amusement, please wait..." % len(photos))
         screenshot_files = []
         for photo in photos:
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
-            await message.channel.send("Your screenshots for the last 48h:")
+            await message.channel.send("Your screenshots since last check:")
             for fileset in screenshot_files:
                 await message.channel.send(files=fileset)
+            with open("shown.json", 'w') as f:
+                json.dump(self.shown_screenshots, f)
         else:
-            await message.channel.send("Your screenshots for the last 48h:", files=screenshot_files)
-
+            await message.channel.send("Your screenshots since last check:", files=screenshot_files)
+            with open("shown.json", 'w') as f:
+                json.dump(self.shown_screenshots, f)
 
     async def monitor_task(self):
         if len(self.reporting_channels) == 0:
@@ -237,7 +281,71 @@ class DDRBotClient(discord.Client):
         await asyncio.sleep(60)
         self.loop.create_task(self.monitor_task())
 
+    async def auto_task(self):
+        if len(self.add_autos) > 0:
+            for user_id in self.add_autos:
+                self.auto_users[user_id] = 0
+            self.add_autos = []
+            with open('auto.json', 'w') as f:
+                json.dump(self.auto_users, f)
 
+        if len(self.remove_autos) > 0:
+            for user_id in self.remove_autos:
+                if user_id in self.auto_users:
+                    del self.auto_users[user_id]
+            self.remove_autos = []
+            with open('auto.json', 'w') as f:
+                json.dump(self.auto_users, f)
+
+        for user_id in self.auto_users:
+            last_time = int(self.auto_users[user_id])
+            # Fetch screenshots
+            eal = None
+            try:
+                eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
+                photos = eal.get_screenshot_list()
+            except Exception as ex:
+                if user_id not in self.warned_auto_error:
+                    print("Exception fetching photos for %s\n%s" % (user_id, ex))
+                    self.warned_auto_error.append(user_id)
+                photos = []
+            else:
+                if user_id in self.warned_auto_error:
+                    self.warned_auto_error.remove(user_id)
+
+            if len(photos > 0):
+                photos = sorted(photos, key=lambda x: int(x['last_play_date']))  # Smallest first
+                new_photos = []
+                for photo in photos:
+                    if int(photo['last_play_date']) > last_time:
+                        new_photos.append(photo)
+                        last_time = int(photo['last_play_date'])
+
+                if len(new_photos) > 0:
+                    self.auto_users[user_id] = last_time
+                    user = self.get_user(user_id)
+                    if user is None:
+                        continue
+                    channel = user.dm_channel
+                    if channel is None:
+                        await user.create_dm()
+                        channel = user.dm_channel
+
+                    screenshot_files = []
+                    for photo in new_photos:
+                        data = eal.get_jpeg_data_for(photo['file_path'])
+                        screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
+                    if len(screenshot_files) > 10:
+                        screenshot_files = divide_chunks(screenshot_files, 10)
+                        for fileset in screenshot_files:
+                            await channel.send(files=fileset)
+                    else:
+                        await channel.send(files=screenshot_files)
+                    with open('auto.json', 'w') as f:
+                        json.dump(self.auto_users, f)
+
+        await asyncio.sleep(60)
+        self.loop.create_task(self.auto_task())
 
 
 if __name__ == "__main__":
