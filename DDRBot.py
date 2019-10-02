@@ -301,6 +301,7 @@ class DDRBotClient(discord.Client):
 
         for user_id in self.auto_users:
             last_time = int(self.auto_users[user_id])
+            print("Trying auto for %s, last_time %s" % (user_id, last_time))
             # Fetch screenshots
             eal = None
             try:
