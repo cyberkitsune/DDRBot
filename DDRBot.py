@@ -301,7 +301,6 @@ class DDRBotClient(discord.Client):
 
         for user_id in self.auto_users:
             last_time = int(self.auto_users[user_id])
-            print("Trying auto for %s, last_time %s" % (user_id, last_time))
             # Fetch screenshots
             eal = None
             try:
@@ -326,8 +325,9 @@ class DDRBotClient(discord.Client):
 
                 if len(new_photos) > 0:
                     self.auto_users[user_id] = last_time
-                    user = self.get_user(user_id)
+                    user = self.get_user(int(user_id))
                     if user is None:
+                        print("Auto warning: can't find user %s" % user_id)
                         continue
                     channel = user.dm_channel
                     if channel is None:
