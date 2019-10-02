@@ -256,7 +256,6 @@ class DDRBotClient(discord.Client):
         for user_id in self.auto_users:
             last_time = int(self.auto_users[user_id])
             # Fetch screenshots
-            photos = []
             eal = None
             try:
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
@@ -265,7 +264,7 @@ class DDRBotClient(discord.Client):
                 if user_id not in self.warned_auto_error:
                     print("Exception fetching photos for %s\n%s" % (user_id, ex))
                     self.warned_auto_error.append(user_id)
-                continue
+                photos = []
             else:
                 if user_id in self.warned_auto_error:
                     self.warned_auto_error.remove(user_id)
