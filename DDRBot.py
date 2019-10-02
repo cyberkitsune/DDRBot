@@ -28,6 +28,8 @@ class DDRBotClient(discord.Client):
     lastrun = None
     auto_task_created = False
     auto_users = {}
+    add_autos = []
+    remove_autos = []
     warned_auto_error = []
     warned_no_users = False
 
@@ -159,6 +161,33 @@ class DDRBotClient(discord.Client):
         else:
             await message.channel.send("Unable to log in!")
 
+    async def auto_command(self, message):
+        args = message.content.split(" ")
+        if len(args) < 2:
+            if str(message.author.id) in self.auto_users:
+                await message.channel.send("You are opted-in to automatic screenshot DMs.")
+            else:
+                await message.channel.send("You are not yet opted in to automatic screenshot DMs.")
+            await message.channel.send("This command allows you to opt-in to having the bot send you your screenshots automatically in a DM.\n"
+                                       "Usage:\n"
+                                       "```%sauto (on | off)" % self.command_prefix)
+            return
+
+        if args[1] == 'on':
+            if str(message.author.id) not in self.auto_users:
+                self.add_autos.append(str(message.author.id))
+                await message.channel.send("You have opted-in to automatic screenshots! You will be DM'd them around a minute after taking them.")
+            else:
+                await message.channel.send("You are already opted-in to automatic screenshots. Opt-out by running `%sauto off`" % self.command_prefix)
+        elif args[1] == 'off':
+            if str(message.author.id) in self.auto_users:
+                self.remove_autos.append(str(message.author.id))
+                await message.channel.send("You are now opted-out of automatic screenshots. Opt back in by running `%sauto on`" % self.command_prefix)
+            else:
+                await message.channel.send("You're not opted-in to automatic screenshots. Opt in by running `%sauto on`" % self.command_prefix)
+        else:
+            await message.channel.send("Invalid syntax.\nUsage:\n```%sauto (on | off)```" % self.command_prefix)
+
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
@@ -253,6 +282,21 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.monitor_task())
 
     async def auto_task(self):
+        if len(self.add_autos) > 0:
+            for user_id in self.add_autos:
+                self.auto_users[user_id] = 0
+            self.add_autos = []
+            with open('auto.json', 'w') as f:
+                json.dump(self.auto_users, f)
+
+        if len(self.remove_autos) > 0:
+            for user_id in self.remove_autos:
+                if user_id in self.auto_users:
+                    del self.auto_users[user_id]
+            self.remove_autos = []
+            with open('auto.json', 'w') as f:
+                json.dump(self.auto_users, f)
+
         for user_id in self.auto_users:
             last_time = int(self.auto_users[user_id])
             # Fetch screenshots
