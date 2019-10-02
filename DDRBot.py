@@ -176,18 +176,18 @@ class DDRBotClient(discord.Client):
                                            % (self.command_prefix, self.command_prefix))
                 return
 
-        await message.channel.send("Fetching %i scores from e-amusement, please wait..." % len(photos))
+        await message.channel.send("Fetching %i new scores from e-amusement, please wait..." % len(photos))
         screenshot_files = []
         for photo in photos:
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
-            await message.channel.send("Your screenshots for the last 48h:")
+            await message.channel.send("Your screenshots since last check:")
             for fileset in screenshot_files:
                 await message.channel.send(files=fileset)
         else:
-            await message.channel.send("Your screenshots for the last 48h:", files=screenshot_files)
+            await message.channel.send("Your screenshots since last check:", files=screenshot_files)
 
     async def monitor_task(self):
         if len(self.reporting_channels) == 0:
