@@ -50,7 +50,6 @@ class DDRBotClient(discord.Client):
             self.task_created = True
             print("Created monitoring thread!")
 
-
     async def on_message(self, message: discord.Message):
         if message.content.startswith(self.command_prefix):
             try:
@@ -92,7 +91,6 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Hmm... I can't find that player!")
         else:
             await message.channel.send("```\n%s\t%i```" % (player.name, player.ddrid))
-
 
     async def search_command(self, message):
         args = message.content.split(" ",1)
@@ -190,7 +188,6 @@ class DDRBotClient(discord.Client):
                 await message.channel.send(files=fileset)
         else:
             await message.channel.send("Your screenshots for the last 48h:", files=screenshot_files)
-
 
     async def monitor_task(self):
         if len(self.reporting_channels) == 0:
