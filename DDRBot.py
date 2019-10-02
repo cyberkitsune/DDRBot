@@ -315,7 +315,7 @@ class DDRBotClient(discord.Client):
                 if user_id in self.warned_auto_error:
                     self.warned_auto_error.remove(user_id)
 
-            if len(photos > 0):
+            if len(photos) > 0:
                 photos = sorted(photos, key=lambda x: int(x['last_play_date']))  # Smallest first
                 new_photos = []
                 for photo in photos:
