@@ -45,6 +45,10 @@ class DDRBotClient(discord.Client):
             print("Loaded saved e-amusement accounts!")
             with open("linked.json", 'r') as f:
                 self.linked_eamuse = json.load(f)
+        if os.path.exists("shown.json"):
+            print("Loaded shown history!")
+            with open("shown.json", 'r') as f:
+                self.shown_screenshots = json.load(f)
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
@@ -157,15 +161,15 @@ class DDRBotClient(discord.Client):
             await message.channel.send("You don't have any screenshots saved from the last day. Go out and get some scores!")
             return
         if not showAll:
-            if message.author.id not in self.shown_screenshots:
-                self.shown_screenshots[message.author.id] = []
+            if str(message.author.id) not in self.shown_screenshots:
+                self.shown_screenshots[str(message.author.id)] = []
             newOnly = []
             for photo in photos:
                 key = "%s%s" % (photo['game_name'], photo['last_play_date'])
-                if key not in self.shown_screenshots[message.author.id]:
+                if key not in self.shown_screenshots[str(message.author.id)]:
                     # New screenshot
                     newOnly.append(photo)
-                    self.shown_screenshots[message.author.id].append(key)
+                    self.shown_screenshots[str(message.author.id)].append(key)
                 else:
                     continue
             if len(newOnly) > 0:
@@ -186,8 +190,12 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Your screenshots since last check:")
             for fileset in screenshot_files:
                 await message.channel.send(files=fileset)
+            with open("shown.json", 'w') as f:
+                json.dump(self.shown_screenshots, f)
         else:
             await message.channel.send("Your screenshots since last check:", files=screenshot_files)
+            with open("shown.json", 'w') as f:
+                json.dump(self.shown_screenshots, f)
 
     async def monitor_task(self):
         if len(self.reporting_channels) == 0:
