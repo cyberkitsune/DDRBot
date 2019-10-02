@@ -324,6 +324,7 @@ class DDRBotClient(discord.Client):
                         last_time = int(photo['last_play_date'])
 
                 if len(new_photos) > 0:
+                    print("Sending %i photos to %s" % (len(new_photos), user_id))
                     self.auto_users[user_id] = last_time
                     user = self.get_user(int(user_id))
                     if user is None:
