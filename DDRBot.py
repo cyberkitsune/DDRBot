@@ -101,8 +101,9 @@ class DDRBotClient(discord.Client):
             else:
                 if str(message.author.id) == str(message.channel.guild.owner_id):
                     should_listen = True
+        do_command = message.content.startswith(self.command_prefix)
         if should_listen:
-            if message.content.startswith(self.command_prefix):
+            if do_command:
                 try:
                     command_name = message.content.split(" ", 1)[0]
                     command_name = command_name.split(self.command_prefix, 1)[1]
@@ -122,6 +123,9 @@ class DDRBotClient(discord.Client):
                         await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
                 else:
                     await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
+        elif do_command and not should_listen:
+            await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
+
 
     async def auth_channel(self, message):
         if not isinstance(message.channel, discord.TextChannel):
