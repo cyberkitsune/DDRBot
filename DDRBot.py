@@ -189,7 +189,12 @@ class DDRBotClient(discord.Client):
             self.authorized_channels['reporting'].append(str(message.channel.id))
             await message.channel.send("Added this channel to the reporting list!")
         else:
-            await message.channel.send("This channel is already a reporting destination!")
+            await message.channel.send("This channel is already a reporting destination! Removing...")
+            self.authorized_channels['reporting'].remove(str(message.channel.id))
+
+        save_json('channels.json', self.authorized_channels)
+
+
 
     async def link_command(self, message):
         if not isinstance(message.channel, discord.DMChannel):
