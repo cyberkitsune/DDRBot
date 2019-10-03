@@ -75,6 +75,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['auto'] = self.auto_command
         self.command_handlers['authorize'] = self.auth_channel
         self.command_handlers['moneyyy'] = self.memes
+        self.command_handlers['dollarsign'] = self.memes
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
