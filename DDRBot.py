@@ -15,11 +15,33 @@ def divide_chunks(l, n):
         yield l[i:i + n]
 
 
+def save_json(filename, obj):
+    try:
+        with open(filename, 'w') as f:
+            json.dump(obj, f)
+    except IOError as ex:
+        print("Exception occured saving %s!\n%s" % (filename, ex))
+    else:
+        print("Saved %s successfully." % filename)
+
+
+def load_json(filename):
+    try:
+        with open(filename, 'r') as f:
+            obj = json.load(f)
+    except IOError as ex:
+        print("Exception occured loading %s!\n%s" % (filename, ex))
+        return None
+    else:
+        print("Loaded %s successfully." % filename)
+        return obj
+
+
 class DDRBotClient(discord.Client):
-    admin_users = []
+    admin_users = ['109500246106587136']
     command_handlers = {}
     command_prefix = 'k!'
-    reporting_channels = []
+    authorized_channels = {}
     monitoring_arcades: List[DDRArcadeMonitor] = []
     linked_eamuse = {}
     shown_screenshots = {}
@@ -42,23 +64,24 @@ class DDRBotClient(discord.Client):
         self.command_handlers['link'] = self.link_command
         self.command_handlers['scores'] = self.show_screenshots
         self.command_handlers['auto'] = self.auto_command
+        self.command_handlers['authorize'] = self.auth_channel
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
     async def on_ready(self):
         print("DDRBot is ready!")
         if os.path.exists("linked.json"):
-            print("Loaded saved e-amusement accounts!")
-            with open("linked.json", 'r') as f:
-                self.linked_eamuse = json.load(f)
+            print("Loading saved e-amusement accounts!")
+            self.linked_eamuse = load_json("linked.json")
         if os.path.exists("shown.json"):
-            print("Loaded shown history!")
-            with open("shown.json", 'r') as f:
-                self.shown_screenshots = json.load(f)
+            print("Loading shown history!")
+            self.shown_screenshots = load_json("shown.json")
         if os.path.exists("auto.json"):
-            print("Loaded automode users!")
-            with open("auto.json", 'r') as f:
-                self.auto_users = json.load(f)
+            print("Loading automode users!")
+            self.auto_users = load_json("auto.json")
+        if os.path.exists("channels.json"):
+            print("Loading authorized channels!")
+            self.authorized_channels = load_json("channels.json")
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
@@ -129,8 +152,10 @@ class DDRBotClient(discord.Client):
             await message.channel.send(user_message)
 
     async def addreport_command(self, message):
-        if message.channel not in self.reporting_channels:
-            self.reporting_channels.append(message.channel)
+        if 'reporting' not in self.authorized_channels:
+            self.authorized_channels['reporting'] = []
+        if str(message.channel.id) not in self.authorized_channels['reporting']:
+            self.authorized_channels['reporting'].append(str(message.channel.id))
             await message.channel.send("Added this channel to the reporting list!")
         else:
             await message.channel.send("This channel is already a reporting destination!")
@@ -158,8 +183,7 @@ class DDRBotClient(discord.Client):
         if eal.logged_in:
             self.linked_eamuse[str(message.author.id)] = [eal.cookies[0], eal.cookies[1]]
             await message.channel.send("Logged in!\nYour cookies (for debug):\n```aqbsess=%s aqblog=%s```" % eal.cookies)
-            with open("linked.json", 'w') as f:
-                json.dump(self.linked_eamuse, f)
+            save_json("linked.json", self.linked_eamuse)
         else:
             await message.channel.send("Unable to log in!")
 
@@ -231,15 +255,13 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Your screenshots since last check:")
             for fileset in screenshot_files:
                 await message.channel.send(files=fileset)
-            with open("shown.json", 'w') as f:
-                json.dump(self.shown_screenshots, f)
+            save_json("shown.json", self.shown_screenshots)
         else:
             await message.channel.send("Your screenshots since last check:", files=screenshot_files)
-            with open("shown.json", 'w') as f:
-                json.dump(self.shown_screenshots, f)
+            save_json("shown.json", self.shown_screenshots)
 
     async def monitor_task(self):
-        if len(self.reporting_channels) == 0:
+        if len(self.authorized_channels['reporting']) == 0:
             await asyncio.sleep(60)
             self.loop.create_task(self.monitor_task())
             return
@@ -255,8 +277,10 @@ class DDRBotClient(discord.Client):
             if len(current_users) == 0:
                 if not self.warned_no_users:
                     print("No current users returned...")
-                    for channel in self.reporting_channels:
-                        await channel.send("Hey! There are no recent users... this could be a bug!!! (Or maintenance)")
+                    for channel_id in self.authorized_channels['reporting']:
+                        channel = self.get_channel(channel_id)
+                        if channel is not None:
+                            await channel.send("Hey! There are no recent users... this could be a bug!!! (Or maintenance)")
                     self.warned_no_users = True
                 continue
             else:
@@ -281,9 +305,11 @@ class DDRBotClient(discord.Client):
                 user_str = '\n'.join(['%s\t%i' % (x.name, x.ddrid) for x in new_users])
                 n_message = "Just logged out:\n```%s```" % user_str
                 print(n_message)
-                if len(self.reporting_channels) > 0:
-                    for channel in self.reporting_channels:
-                        await channel.send(n_message)
+                if len(self.authorized_channels['reporting']) > 0:
+                    for channel_id in self.authorized_channels['reporting']:
+                        channel = self.get_channel(channel_id)
+                        if channel is not None:
+                            await channel.send(n_message)
         await asyncio.sleep(60)
         self.loop.create_task(self.monitor_task())
 
@@ -292,16 +318,14 @@ class DDRBotClient(discord.Client):
             for user_id in self.add_autos:
                 self.auto_users[user_id] = 0
             self.add_autos = []
-            with open('auto.json', 'w') as f:
-                json.dump(self.auto_users, f)
+            save_json("auto.json", self.auto_users)
 
         if len(self.remove_autos) > 0:
             for user_id in self.remove_autos:
                 if user_id in self.auto_users:
                     del self.auto_users[user_id]
             self.remove_autos = []
-            with open('auto.json', 'w') as f:
-                json.dump(self.auto_users, f)
+            save_json("auto.json", self.auto_users)
 
         for user_id in self.auto_users:
             last_time = int(self.auto_users[user_id])
@@ -349,8 +373,7 @@ class DDRBotClient(discord.Client):
                             await channel.send(files=fileset)
                     else:
                         await channel.send(files=screenshot_files)
-                    with open('auto.json', 'w') as f:
-                        json.dump(self.auto_users, f)
+                    save_json("auto.json", self.auto_users)
 
         await asyncio.sleep(60)
         self.loop.create_task(self.auto_task())
