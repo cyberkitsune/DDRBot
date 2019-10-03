@@ -92,26 +92,57 @@ class DDRBotClient(discord.Client):
             print("Created auto thread")
 
     async def on_message(self, message: discord.Message):
-        if message.content.startswith(self.command_prefix):
-            try:
-                command_name = message.content.split(" ", 1)[0]
-                command_name = command_name.split(self.command_prefix, 1)[1]
-            except Exception:
-                command_name = ""
-
-            print("Got command:", command_name)
-            if command_name in self.command_handlers:
-                try:
-                    await self.command_handlers[command_name](message)
-                except EALinkException as ex:
-                    if ex.jscontext is not None:
-                        await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```\nError JSON```\n%s```" % (ex, ex.jscontext))
-                    else:
-                        await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
-                except Exception as ex:
-                    await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
+        if 'commands' not in self.authorized_channels:
+            self.authorized_channels['commands'] = []
+        should_listen = message.author.id in self.admin_users or message.channel.id in self.authorized_channels['commands']
+        if not should_listen:
+            if isinstance(message.channel, discord.DMChannel):
+                should_listen = True
             else:
-                await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
+                if message.author.id == message.channel.guild.owner_id:
+                    should_listen = True
+        if should_listen:
+            if message.content.startswith(self.command_prefix):
+                try:
+                    command_name = message.content.split(" ", 1)[0]
+                    command_name = command_name.split(self.command_prefix, 1)[1]
+                except Exception:
+                    command_name = ""
+
+                print("Got command:", command_name)
+                if command_name in self.command_handlers:
+                    try:
+                        await self.command_handlers[command_name](message)
+                    except EALinkException as ex:
+                        if ex.jscontext is not None:
+                            await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```\nError JSON```\n%s```" % (ex, ex.jscontext))
+                        else:
+                            await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
+                    except Exception as ex:
+                        await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
+                else:
+                    await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
+
+    async def auth_channel(self, message):
+        if not isinstance(message.channel, discord.TextChannel):
+            await message.channel.send("Sorry, you can't run this in a DM.")
+            return
+
+        if message.author.id != message.channel.guild.owner_id  or message.author.id not in self.admin_users:
+            await message.channel.send("Sorry, only bot admins or guild owners can authorize channels.")
+            return
+
+        if 'commands' not in self.authorized_channels:
+            self.authorized_channels['commands'] = []
+
+        if str(message.channel.id) in self.authorized_channels['commands']:
+            await message.channel.send("This channel is already authorized to run commands.\nRemoving authorization now.")
+            self.authorized_channels['commands'].remove(str(message.channel.id))
+        else:
+            await message.channel.send("Authorized this channel to use commands!")
+            self.authorized_channels['commands'].append(str(message.channel.id))
+
+        save_json("channels.json", self.authorized_channels)
 
     async def help_command(self, message):
         command_list = ', '.join(self.command_handlers.keys())
