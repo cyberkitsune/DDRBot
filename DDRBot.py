@@ -138,7 +138,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
 
     async def memes(self, message):
-        memes = [':kevo:', 'kevoZ', ':rando:']
+        memes = [':kevo:', ':kevoZ:', '<:kevo:572201963169513472>']
         await message.channel.send(random.choice(memes))
 
     async def auth_channel(self, message):
