@@ -292,6 +292,8 @@ class DDRBotClient(discord.Client):
             save_json("shown.json", self.shown_screenshots)
 
     async def monitor_task(self):
+        if 'reporting' not in self.authorized_channels:
+            self.authorized_channels['reporting'] = []
         if len(self.authorized_channels['reporting']) == 0:
             await asyncio.sleep(60)
             self.loop.create_task(self.monitor_task())
