@@ -25,6 +25,15 @@ def save_json(filename, obj):
         print("Saved %s successfully." % filename)
 
 
+def archive_screenshot(userid, filename, data):
+    if not os.path.exists("archive/%s/" % userid):
+        os.makedirs("archive/%s/" % userid)
+
+    if not os.path.exists("archive/%s/%s" % (userid, filename)):
+        with open("archive/%s/%s" % (userid, filename), 'wb') as f:
+            f.write(data)
+
+
 def load_json(filename):
     try:
         with open(filename, 'r') as f:
@@ -313,6 +322,7 @@ class DDRBotClient(discord.Client):
         for photo in photos:
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
+            archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -432,6 +442,8 @@ class DDRBotClient(discord.Client):
                     for photo in new_photos:
                         data = eal.get_jpeg_data_for(photo['file_path'])
                         screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
+                        archive_screenshot(user.id,
+                                           '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
                     if len(screenshot_files) > 10:
                         screenshot_files = divide_chunks(screenshot_files, 10)
                         for fileset in screenshot_files:
