@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback
+import discord, sys, asyncio, datetime, io, os, json, traceback, random
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -74,6 +74,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['scores'] = self.show_screenshots
         self.command_handlers['auto'] = self.auto_command
         self.command_handlers['authorize'] = self.auth_channel
+        self.command_handlers['kmoneyyy'] = self.memes
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
@@ -134,6 +135,10 @@ class DDRBotClient(discord.Client):
                     await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
+
+    async def memes(self, message):
+        memes = [':kevo:', 'kevoZ', ':rando:']
+        await message.channel.send(random.choice(memes))
 
     async def auth_channel(self, message):
         if not isinstance(message.channel, discord.TextChannel):
