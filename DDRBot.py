@@ -302,7 +302,7 @@ class DDRBotClient(discord.Client):
         eal = EALink(cookies=(self.linked_eamuse[str(message.author.id)][0], self.linked_eamuse[str(message.author.id)][1]))
         photos = eal.get_screenshot_list()
         if len(photos) == 0:
-            await message.channel.send("You don't have any screenshots saved from the last day. Go out and get some scores!\n\n"
+            await message.channel.send("You don't have any unexpired screenshots saved from the last 48h. Go out and get some scores!\n\n"
                                        "Hint: To save screenshots press `1` on the score screen (in DDR) or `0` (in IIDX)")
             return
         if not showAll:
