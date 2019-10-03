@@ -161,6 +161,9 @@ class DDRBotClient(discord.Client):
         save_json("channels.json", self.authorized_channels)
 
     async def help_command(self, message):
+        await message.channel.send("Hi! I'm KitsuneBot! I can do various actions related to Bemani games and e-amusement!\n"
+                                   "To use commands simply put `%s` before a command name listed below!\n"
+                                   "I'm made by <@109500246106587136> so feel free to ask them any questions" % self.command_prefix)
         command_list = ', '.join(self.command_handlers.keys())
         await message.channel.send("You can run the following commands: %s" % command_list)
 
