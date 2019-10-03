@@ -131,7 +131,11 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Sorry, you can't run this in a DM.")
             return
 
-        if message.author.id != message.channel.guild.owner_id or str(message.author.id) not in self.admin_users:
+        can_auth = message.author.id == message.channel.guild.owner_id
+        if not can_auth:
+            can_auth = str(message.author.id) in self.admin_users
+
+        if not can_auth:
             await message.channel.send("Sorry, only bot admins or guild owners can authorize channels.")
             return
 
@@ -190,7 +194,11 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Sorry, you can't run this in a DM.")
             return
 
-        if message.author.id != message.channel.guild.owner_id or str(message.author.id) not in self.admin_users:
+        can_auth = message.author.id == message.channel.guild.owner_id
+        if not can_auth:
+            can_auth = str(message.author.id) in self.admin_users
+
+        if not can_auth:
             await message.channel.send("Sorry, only bot admins or guild owners can authorize channels.")
             return
 
