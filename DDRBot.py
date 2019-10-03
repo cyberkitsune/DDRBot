@@ -247,12 +247,16 @@ class DDRBotClient(discord.Client):
             new_users = []
             api = EAGate(arcade.api_key)
             ddr = DDRApi(api)
-            current_users = ddr.fetch_recent_players()
+            try:
+                current_users = ddr.fetch_recent_players()
+            except Exception:
+                current_users = []
+
             if len(current_users) == 0:
                 if not self.warned_no_users:
                     print("No current users returned...")
                     for channel in self.reporting_channels:
-                        await channel.send("Hey! There are no recent users... this could be a bug!!!")
+                        await channel.send("Hey! There are no recent users... this could be a bug!!! (Or maintenance)")
                     self.warned_no_users = True
                 continue
             else:
