@@ -222,8 +222,6 @@ class DDRBotClient(discord.Client):
 
         save_json('channels.json', self.authorized_channels)
 
-
-
     async def link_command(self, message):
         if not isinstance(message.channel, discord.DMChannel):
             if str(message.author.id) not in self.linked_eamuse:
