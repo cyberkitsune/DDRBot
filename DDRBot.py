@@ -126,13 +126,12 @@ class DDRBotClient(discord.Client):
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
 
-
     async def auth_channel(self, message):
         if not isinstance(message.channel, discord.TextChannel):
             await message.channel.send("Sorry, you can't run this in a DM.")
             return
 
-        if message.author.id != message.channel.guild.owner_id or message.author.id not in self.admin_users:
+        if message.author.id != message.channel.guild.owner_id or str(message.author.id) not in self.admin_users:
             await message.channel.send("Sorry, only bot admins or guild owners can authorize channels.")
             return
 
@@ -169,7 +168,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("```\n%s\t%i```" % (player.name, player.ddrid))
 
     async def search_command(self, message):
-        args = message.content.split(" ",1)
+        args = message.content.split(" ", 1)
         if len(args) < 2:
             await message.channel.send("You didn't specify a name to search")
             return
@@ -191,7 +190,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Sorry, you can't run this in a DM.")
             return
 
-        if message.author.id != message.channel.guild.owner_id or message.author.id not in self.admin_users:
+        if message.author.id != message.channel.guild.owner_id or str(message.author.id) not in self.admin_users:
             await message.channel.send("Sorry, only bot admins or guild owners can authorize channels.")
             return
 
