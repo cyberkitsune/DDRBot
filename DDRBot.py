@@ -183,6 +183,14 @@ class DDRBotClient(discord.Client):
             await message.channel.send(user_message)
 
     async def addreport_command(self, message):
+        if not isinstance(message.channel, discord.TextChannel):
+            await message.channel.send("Sorry, you can't run this in a DM.")
+            return
+
+        if message.author.id != message.channel.guild.owner_id or message.author.id not in self.admin_users:
+            await message.channel.send("Sorry, only bot admins or guild owners can authorize channels.")
+            return
+
         if 'reporting' not in self.authorized_channels:
             self.authorized_channels['reporting'] = []
         if str(message.channel.id) not in self.authorized_channels['reporting']:
