@@ -221,6 +221,10 @@ class DDRBotClient(discord.Client):
                 await message.channel.send("Your e-amusement account is not linked!")
                 await message.channel.send("Use this command in a DM with me to link your e-amusement account! **Do not use this command in public**")
                 await message.channel.send("Usage:\n```%slink [username] [password] [otp (optional)]```" % self.command_prefix)
+                await message.channel.send("```The bot will not save or log your username or password.\n"
+                                           " A token is saved instead and can be revoked by logging in to the e-amusement app if you ever feel the need.\n\n"
+                                           "You can review the code for this if you'd like over on github (it's open source)\n "
+                                           "https://github.com/cyberkitsune/DDRBot/blob/master/DDRBot.py```")
             else:
                 await message.channel.send("Your e-amusement account is linked!")
                 await message.channel.send("Use this command in a DM with me to link a different e-amusement account!")
