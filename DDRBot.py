@@ -237,7 +237,7 @@ class DDRBotClient(discord.Client):
                                            "https://github.com/cyberkitsune/DDRBot/blob/master/DDRBot.py```")
             else:
                 await message.channel.send("Your e-amusement account is linked!")
-                await message.channel.send("Use this command in a DM with me to link a different e-amusement account!")
+                await message.channel.send("Use this command in a DM with me to link a different e-amusement account or to login again!")
             return
         args = message.content.split(" ")
         if len(args) < 3:
