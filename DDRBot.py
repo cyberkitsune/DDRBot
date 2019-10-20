@@ -79,6 +79,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['moneyyy'] = self.memes
             self.command_handlers['dollarsign'] = self.memes
             self.command_handlers['bbq'] = self.bbq
+            self.command_handlers['t3a'] = self.t3a
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
@@ -159,6 +160,13 @@ class DDRBotClient(discord.Client):
     async def bbq(self, message):
         if self.check_shitpost(message):
             await message.channel.send('<:bbqplox:624781279338168360>')
+        else:
+            await message.add_reaction('<:eming:572201816792629267>')
+
+    async def t3a(self, message):
+        if self.check_shitpost(message):
+            memes = ['<:t3aSmug:633878806284730368>', '<:T3Amote:585356555898191873>', '<:t3afrog:627790632051671040>']
+            await message.channel.send(random.choice(memes))
         else:
             await message.add_reaction('<:eming:572201816792629267>')
 
