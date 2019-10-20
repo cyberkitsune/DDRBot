@@ -74,8 +74,10 @@ class DDRBotClient(discord.Client):
         self.command_handlers['scores'] = self.show_screenshots
         self.command_handlers['auto'] = self.auto_command
         self.command_handlers['authorize'] = self.auth_channel
-        self.command_handlers['moneyyy'] = self.memes
-        self.command_handlers['dollarsign'] = self.memes
+        if os.path.exists("ENABLE_SHITPOST"):
+            self.command_handlers['moneyyy'] = self.memes
+            self.command_handlers['dollarsign'] = self.memes
+            self.command_handlers['bbq'] = self.bbq
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
@@ -140,6 +142,9 @@ class DDRBotClient(discord.Client):
     async def memes(self, message):
         memes = ['<:kevo:572201963169513472>', '<:kevoZ:626859378716311585>']
         await message.channel.send(random.choice(memes))
+
+    async def bbq(self, message):
+        await message.channel.send('<:bbqplox:624781279338168360>')
 
     async def auth_channel(self, message):
         if not isinstance(message.channel, discord.TextChannel):
