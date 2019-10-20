@@ -75,6 +75,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['auto'] = self.auto_command
         self.command_handlers['authorize'] = self.auth_channel
         if os.path.exists("ENABLE_SHITPOST"):
+            self.command_handlers['memeon'] = self.shitpost_authorize
             self.command_handlers['moneyyy'] = self.memes
             self.command_handlers['dollarsign'] = self.memes
             self.command_handlers['bbq'] = self.bbq
@@ -139,12 +140,27 @@ class DDRBotClient(discord.Client):
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
 
+    def check_shitpost(self, message):
+        if isinstance(message.channel, discord.DMChannel):
+            return True
+
+        if 'memes' in self.authorized_channels:
+            return (str(message.channel.id) in self.authorized_channels['memes'])
+        else:
+            return False
+
     async def memes(self, message):
-        memes = ['<:kevo:572201963169513472>', '<:kevoZ:626859378716311585>']
-        await message.channel.send(random.choice(memes))
+        if self.check_shitpost(message):
+            memes = ['<:kevo:572201963169513472>', '<:kevoZ:626859378716311585>']
+            await message.channel.send(random.choice(memes))
+        else:
+            await message.add_reaction('<:eming:572201816792629267>')
 
     async def bbq(self, message):
-        await message.channel.send('<:bbqplox:624781279338168360>')
+        if self.check_shitpost(message):
+            await message.channel.send('<:bbqplox:624781279338168360>')
+        else:
+            await message.add_reaction('<:eming:572201816792629267>')
 
     async def auth_channel(self, message):
         if not isinstance(message.channel, discord.TextChannel):
@@ -168,6 +184,32 @@ class DDRBotClient(discord.Client):
         else:
             await message.channel.send("Authorized this channel to use commands!")
             self.authorized_channels['commands'].append(str(message.channel.id))
+
+        save_json("channels.json", self.authorized_channels)
+
+    async def shitpost_authorize(self, message):
+        if not isinstance(message.channel, discord.TextChannel):
+            await message.channel.send("Sorry, you can't run this in a DM.")
+            return
+
+        can_auth = message.author.id == message.channel.guild.owner_id
+        if not can_auth:
+            can_auth = str(message.author.id) in self.admin_users
+
+        if not can_auth:
+            await message.channel.send("Sorry, only bot admins or guild owners can authorize meme channels.")
+            return
+
+        if 'memes' not in self.authorized_channels:
+            self.authorized_channels['memes'] = []
+
+        if str(message.channel.id) in self.authorized_channels['memes']:
+            await message.channel.send(
+                "This channel is already authorized to run memes.\nRemoving authorization now.")
+            self.authorized_channels['memes'].remove(str(message.channel.id))
+        else:
+            await message.channel.send("Authorized this channel to use memes!")
+            self.authorized_channels['memes'].append(str(message.channel.id))
 
         save_json("channels.json", self.authorized_channels)
 
