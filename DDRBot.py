@@ -47,8 +47,7 @@ def load_json(filename):
 
 
 class YeetException(Exception):
-    def __init__(self):
-        super()
+    pass
 
 class DDRBotClient(discord.Client):
     admin_users = ['109500246106587136']
@@ -139,6 +138,8 @@ class DDRBotClient(discord.Client):
                             await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```\nError JSON```\n%s```" % (ex, ex.jscontext))
                         else:
                             await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
+                    except YeetException as ex:
+                        raise ex
                     except Exception as ex:
                         await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
                 else:
