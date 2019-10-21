@@ -139,7 +139,8 @@ class DDRBotClient(discord.Client):
                         else:
                             await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
                     except YeetException as ex:
-                        raise ex
+                        await self.logout()
+                        await self.close()
                     except Exception as ex:
                         await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
                 else:
