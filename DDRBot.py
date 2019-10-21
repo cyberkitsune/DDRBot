@@ -46,6 +46,10 @@ def load_json(filename):
         return obj
 
 
+class YeetException(Exception):
+    def __init__(self):
+        super()
+
 class DDRBotClient(discord.Client):
     admin_users = ['109500246106587136']
     command_handlers = {}
@@ -74,6 +78,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['scores'] = self.show_screenshots
         self.command_handlers['auto'] = self.auto_command
         self.command_handlers['authorize'] = self.auth_channel
+        self.command_handlers['yeet'] = self.yeet
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['memeon'] = self.shitpost_authorize
             self.command_handlers['moneyyy'] = self.memes
@@ -140,6 +145,14 @@ class DDRBotClient(discord.Client):
                     await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
+
+
+    async def yeet(self, message):
+        can_yeet = str(message.author.id) in self.admin_users
+        if can_yeet:
+            raise YeetException("YEET")
+        else:
+            await message.add_reaction('<:eming:572201816792629267>')
 
     def check_shitpost(self, message):
         if isinstance(message.channel, discord.DMChannel):
@@ -521,4 +534,9 @@ class DDRBotClient(discord.Client):
 
 if __name__ == "__main__":
     bot = DDRBotClient(sys.argv[2])
-    bot.run(sys.argv[1])
+    try:
+        bot.run(sys.argv[1])
+    except YeetException:
+        exit(0)
+    except Exception as ex:
+        raise ex
