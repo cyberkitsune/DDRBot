@@ -165,7 +165,7 @@ class DDRBotClient(discord.Client):
 
     async def t3a(self, message):
         if self.check_shitpost(message):
-            memes = ['<:t3aSmug:633195488807747584>', '<:T3Amote:585356555898191873>', '<:t3afrog:627790632051671040>']
+            memes = ['<:t3aSmug:635674098940248084>', '<:T3Amote:585356555898191873>', '<:t3afrog:627790632051671040>']
             await message.channel.send(random.choice(memes))
         else:
             await message.add_reaction('<:eming:572201816792629267>')
