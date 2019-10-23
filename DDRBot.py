@@ -231,12 +231,12 @@ class DDRBotClient(discord.Client):
         else:
             return False
 
-    async def memes(self, message):
-        if self.check_shitpost(message):
-            memes = ['<:kevo:572201963169513472>', '<:kevoZ:626859378716311585>']
-            await message.channel.send(random.choice(memes))
-        else:
-            await message.add_reaction('<:eming:572201816792629267>')
+    #async def memes(self, message):
+    #    if self.check_shitpost(message):
+    #        memes = ['<:kevo:572201963169513472>', '<:kevoZ:626859378716311585>']
+    #        await message.channel.send(random.choice(memes))
+    #    else:
+    #        await message.add_reaction('<:eming:572201816792629267>')
 
     async def bbq(self, message):
         if self.check_shitpost(message):
