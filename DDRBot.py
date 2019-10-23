@@ -82,11 +82,7 @@ class DDRBotClient(discord.Client):
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
-            #self.command_handlers['moneyyy'] = self.memes
-            #self.command_handlers['dollarsign'] = self.memes
-            #self.command_handlers['bbq'] = self.bbq
-            #self.command_handlers['t3a'] = self.t3a
-            #self.command_handlers['evoshit'] = self.kevoshit
+
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
@@ -158,7 +154,7 @@ class DDRBotClient(discord.Client):
 
 
     async def meme_manage(self, message):
-        can_add = str(message.author.id) in self.admin_users or message.author.id == message.channel.guild.owner_id
+        can_add = str(message.author.id) in self.admin_users
         if can_add:
             args = message.content.split(" ")
             if len(args) < 2:
@@ -178,6 +174,7 @@ class DDRBotClient(discord.Client):
 
                 self.memes[name].append(' '.join(args[3:]))
                 print("Added new meme %s %s" % (name, ' '.join(args[3:])))
+                await message.channel.send("Added meme!")
                 save_json("memes.json", self.memes)
 
             elif args[1] == "del":
@@ -230,32 +227,6 @@ class DDRBotClient(discord.Client):
             return (str(message.channel.id) in self.authorized_channels['memes'])
         else:
             return False
-
-    #async def memes(self, message):
-    #    if self.check_shitpost(message):
-    #        memes = ['<:kevo:572201963169513472>', '<:kevoZ:626859378716311585>']
-    #        await message.channel.send(random.choice(memes))
-    #    else:
-    #        await message.add_reaction('<:eming:572201816792629267>')
-
-    async def bbq(self, message):
-        if self.check_shitpost(message):
-            await message.channel.send('<:bbqplox:624781279338168360>')
-        else:
-            await message.add_reaction('<:eming:572201816792629267>')
-
-    async def t3a(self, message):
-        if self.check_shitpost(message):
-            memes = ['<:t3aSmiley:635674098940248084>', '<:T3Amote:585356555898191873>', '<:t3afrog:627790632051671040>']
-            await message.channel.send(random.choice(memes))
-        else:
-            await message.add_reaction('<:eming:572201816792629267>')
-
-    async def kevoshit(self, message):
-        if self.check_shitpost(message):
-            await message.channel.send('<:kevoshit:635722037653929984>')
-        else:
-            await message.add_reaction('<:eming:572201816792629267>')
 
     async def auth_channel(self, message):
         if not isinstance(message.channel, discord.TextChannel):
