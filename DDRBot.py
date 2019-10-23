@@ -57,6 +57,7 @@ class DDRBotClient(discord.Client):
     monitoring_arcades: List[DDRArcadeMonitor] = []
     linked_eamuse = {}
     shown_screenshots = {}
+    memes = {}
     generic_eamuse_session = None
     task_created = False
     lastrun = None
@@ -79,12 +80,13 @@ class DDRBotClient(discord.Client):
         self.command_handlers['authorize'] = self.auth_channel
         self.command_handlers['yeet'] = self.yeet
         if os.path.exists("ENABLE_SHITPOST"):
+            self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
-            self.command_handlers['moneyyy'] = self.memes
-            self.command_handlers['dollarsign'] = self.memes
-            self.command_handlers['bbq'] = self.bbq
-            self.command_handlers['t3a'] = self.t3a
-            self.command_handlers['evoshit'] = self.kevoshit
+            #self.command_handlers['moneyyy'] = self.memes
+            #self.command_handlers['dollarsign'] = self.memes
+            #self.command_handlers['bbq'] = self.bbq
+            #self.command_handlers['t3a'] = self.t3a
+            #self.command_handlers['evoshit'] = self.kevoshit
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
 
@@ -102,6 +104,9 @@ class DDRBotClient(discord.Client):
         if os.path.exists("channels.json"):
             print("Loading authorized channels!")
             self.authorized_channels = load_json("channels.json")
+        if os.path.exists("memes.json"):
+            print("Loaded memes!")
+            self.memes = load_json("memes.json")
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
@@ -144,11 +149,71 @@ class DDRBotClient(discord.Client):
                         await self.close()
                     except Exception as ex:
                         await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
+                elif os.path.exists("ENABLE_SHITPOST") and command_name in self.memes:
+                    await self.run_meme(message, command_name)
                 else:
                     await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
 
+
+    async def meme_manage(self, message):
+        can_add = str(message.author.id) in self.admin_users or message.author.id == message.channel.guild.owner_id
+        if can_add:
+            args = message.content.split(" ")
+            if len(args) < 2:
+                await message.channel.send("Invalid Syntax! \nUsage:\n"
+                                           "```%smeme add <meme name> <string>\n%smeme del <meme name> [string]```" % (self.command_prefix, self.command_prefix))
+                return
+            cmdlet = args[1]
+            if args[1] == "add":
+                if len(args) < 3:
+                    await message.channel.send("Invalid Syntax! \nUsage:\n"
+                                               "```%smeme add <meme name> <string>\n%smeme del <meme name> [string]```" % (
+                                               self.command_prefix, self.command_prefix))
+                    return
+                name = args[2]
+                if name not in self.memes:
+                    self.memes[name] = []
+
+                self.memes[name].append(' '.join(args[3:]))
+                print("Added new meme %s %s" % (name, ' '.join(args[3:])))
+                save_json("memes.json", self.memes)
+
+            elif args[1] == "del":
+                name = args[2]
+                if name not in self.memes:
+                    await message.channel.send("%s isn't a meme yet! Can't delete!" % name)
+                    return
+                if len(args) > 3:
+                    msg = ' '.join(args[3:])
+                    if msg in self.memes[name]:
+                        self.memes[name].remove(msg)
+                        await message.channel.send("Deleted %s from %s" % (msg, name))
+                        print("Deleted %s from %s" % (msg, name))
+                        save_json("memes.json", self.memes)
+                    else:
+                        await message.channel.send("%s doesn't have message %s..." % (name, msg))
+                else:
+                    if name in self.memes:
+                        del self.memes[name]
+                        await message.channel.send("Deleted %s from memes." % (name))
+                        print("Deleted %s from memes." % (name))
+                        save_json("memes.json", self.memes)
+            else:
+                await message.channel.send("Invalid Syntax! \nUsage:\n"
+                                           "```%smeme add <meme name> <string>\n%smeme del <meme name> [string]```" % (
+                                           self.command_prefix, self.command_prefix))
+                return
+        else:
+            await message.add_reaction('<:eming:572201816792629267>')
+
+    async def run_meme(self, message, meme_name):
+        if self.check_shitpost(message):
+            string = random.choice(self.memes[meme_name])
+            await message.channel.send(string)
+        else:
+            await message.add_reaction('<:eming:572201816792629267>')
 
     async def yeet(self, message):
         can_yeet = str(message.author.id) in self.admin_users
