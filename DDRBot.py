@@ -210,7 +210,7 @@ class DDRBotClient(discord.Client):
             string = random.choice(self.memes[meme_name])
             await message.channel.send(string)
         else:
-            if message.guild.id == '572200197124390922' and message.author.id == '303023183924166661' and message.guild.me.permissions_in(message.channel).manage_messages:
+            if message.guild.id == '572200197124390922' and message.author.id == '303023183924166661':
                 await message.delete()
             else:
                 await message.add_reaction('<:eming:572201816792629267>')
