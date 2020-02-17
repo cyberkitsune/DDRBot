@@ -437,7 +437,7 @@ class DDRBotClient(discord.Client):
               "Grade: %s %s| Score: %s | Max Combo: %s | EXScore: %s\n" \
               "MARVELOUS %s | PERFECT %s | GREAT %s | GOOD %s | OK %s | MISS %s\n" \
               "```\n" \
-              "If your EXScore has an asterisk, it means the genie couldn't read it from the screenshot, and instead calculated it. The number in brackets is the parsed score." \
+              "If your EXScore has an asterisk, it means the genie couldn't read it from the screenshot, and instead calculated it. The number in brackets is the parsed score.\n" \
               "- DDR GENIE [BETA]" % (pd.dancer_name, pd.song_title, pd.song_artist, pd.chart_play_mode, pd.chart_difficulty,
                                       pd.chart_difficulty_number, pd.play_letter_grade, pd.play_full_combo, int(pd.play_money_score.value), pd.play_max_combo, pd.play_ex_score,
                                       pd.score_marv_count, pd.score_perfect_count, pd.score_great_count, pd.score_good_count, pd.score_OK_count,
