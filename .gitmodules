@@ -1,0 +1,3 @@
+[submodule "DDRGenie"]
+	path = DDRGenie
+	url = https://github.com/cyberkitsune/DDRGenie.git

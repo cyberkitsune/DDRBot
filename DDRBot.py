@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback, random
+import discord, sys, asyncio, datetime, io, os, json, traceback, random, requests
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -82,6 +82,8 @@ class DDRBotClient(discord.Client):
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
+        if os.path.exists("DDR_GENIE_ON"):
+            self.command_handlers['genie'] = self.genie_command
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
@@ -151,7 +153,6 @@ class DDRBotClient(discord.Client):
                     await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
-
 
     async def meme_manage(self, message):
         can_add = str(message.author.id) in self.admin_users
@@ -409,6 +410,38 @@ class DDRBotClient(discord.Client):
         else:
             await message.channel.send("Invalid syntax.\nUsage:\n```%sauto (on | off)```" % self.command_prefix)
 
+    async def genie_command(self, message):
+        if not os.path.exists("DDR_GENIE_ON"):
+            await message.channel.send("DDR GENIE (BETA) is not enabled on this bot instance.")
+            return
+
+        from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
+        from PIL import Image
+        import io
+        args = message.content.split(' ')
+        if len(args) < 2 or 'http' not in args[1]:
+            await message.channel.send("Send me a URL to a DDR screenshot and I'll try and parse it.")
+            return
+
+        data = requests.get(args[1]).content
+        img = Image.open(io.BytesIO(data))
+
+        ss = DDRScreenshot(img)
+        pd = DDRParsedData(ss)
+        msg = "```" \
+              "DDR Play by: %s\n" \
+              "Song: %s BY %s\n" \
+              "%s %s Play (Difficulty %s) \n" \
+              "Score: %s | Max Combo: %s | EXScore: %s\n" \
+              "MARVELOUS %s | PERFECT %s | GREAT %s | GOOD %s | OK %s | MISS %s\n" \
+              "```\n" \
+              "- DDR GENIE [BETA]" % (pd.dancer_name, pd.song_title, pd.song_artist, pd.chart_play_mode, pd.chart_difficulty,
+                                      pd.chart_difficulty_number, pd.play_money_score, pd.play_max_combo, pd.play_ex_score,
+                                      pd.score_marv_count, pd.score_perfect_count, pd.score_great_count, pd.score_good_count, pd.score_OK_count,
+                                      pd.score_miss_count)
+
+        await message.channel.send(msg)
+
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
             await message.channel.send("Your e-amusement account isn't linked! Use `%slink` to link your account." % self.command_prefix)
@@ -575,6 +608,8 @@ class DDRBotClient(discord.Client):
                     else:
                         await channel.send(files=screenshot_files)
                     save_json("auto.json", self.auto_users)
+
+
 
         await asyncio.sleep(60)
         self.loop.create_task(self.auto_task())
