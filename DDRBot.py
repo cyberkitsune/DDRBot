@@ -423,6 +423,8 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Send me a URL to a DDR screenshot and I'll try and parse it.")
             return
 
+        await message.channel.send("Please wait, downloading and trying to parse your screenshot...")
+
         data = requests.get(args[1]).content
         img = Image.open(io.BytesIO(data))
 
