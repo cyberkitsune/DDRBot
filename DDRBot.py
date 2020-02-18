@@ -8,6 +8,10 @@ from py573jp.Exceptions import EALinkException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
 
+if os.path.exists("DDR_GENIE_ON"):
+    from DDRScoreDB import DDRScoreDB
+    db = DDRScoreDB()
+
 
 def divide_chunks(l, n):
     # looping till length l
