@@ -461,7 +461,7 @@ class DDRBotClient(discord.Client):
 
         await message.channel.send(msg)
 
-    async def top_command(self, message):
+    async def top_scores(self, message):
         db.connect()
         query = Score.select().where(Score.user == int(message.author.id)).order_by(Score.money_score).limit(5)
         if not query.exists():
