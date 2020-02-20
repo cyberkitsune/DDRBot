@@ -658,7 +658,7 @@ class DDRBotClient(discord.Client):
             print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s" %
                   (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
                    sd.play_ex_score))
-            if '*' in sd.play_ex_score:
+            if '*' in sd.play_ex_score.value:
                 exscore_int = int(sd.play_ex_score.value.split('*')[0])
             else:
                 exscore_int = int(sd.play_ex_score.value)
