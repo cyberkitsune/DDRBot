@@ -695,7 +695,7 @@ class DDRBotClient(discord.Client):
 
             s.save()
 
-            await asyncio.sleep(10) # Free up time for catch up
+            await asyncio.sleep(2) # Free up time for catch up
 
 
 
