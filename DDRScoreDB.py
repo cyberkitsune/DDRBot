@@ -33,3 +33,4 @@ class Score(BaseModel):
     max_combo = IntegerField()
     recorded_time = DateTimeField(default=datetime.datetime.now)
     file_name = TextField()
+    name_confidence = FloatField()
