@@ -663,8 +663,8 @@ class DDRBotClient(discord.Client):
             else:
                 exscore_int = int(sd.play_ex_score.value)
 
-            query2 = Score.select().where(Score.user == u, Score.song_title == sd.song_title, Score.song_artist == sd.song_artist,
-                                          Score.money_score == int(sd.play_money_score), Score.ex_score == exscore_int)
+            query2 = Score.select().where(Score.user == u, Score.song_title == sd.song_title.value, Score.song_artist == sd.song_artist.value,
+                                          Score.money_score == int(sd.play_money_score.value), Score.ex_score == exscore_int)
             if query2.exists():
                 print("Skipping duplicate score for %s..." % u.display_name)
                 continue
