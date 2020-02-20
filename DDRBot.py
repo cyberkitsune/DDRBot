@@ -662,6 +662,12 @@ class DDRBotClient(discord.Client):
                 exscore_int = int(sd.play_ex_score.value.split('*')[0])
             else:
                 exscore_int = int(sd.play_ex_score.value)
+
+            query2 = Score.select().where(Score.user == u, Score.song_title == sd.song_title, Score.song_artist == sd.song_artist,
+                                          Score.money_score == int(sd.play_money_score), Score.ex_score == exscore_int)
+            if query2.exists():
+                print("Skipping duplicate score for %s..." % u.display_name)
+                continue
             s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLES' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
