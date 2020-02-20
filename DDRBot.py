@@ -7,10 +7,10 @@ from py573jp.EALink import EALink
 from py573jp.Exceptions import EALinkException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
+from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
-    from DDRScoreDB import DDRScoreDB
-    db = DDRScoreDB()
+    from DDRScoreDB import db, User, Score
 
 
 def divide_chunks(l, n):
@@ -72,6 +72,10 @@ class DDRBotClient(discord.Client):
     warned_auto_error = []
     warned_no_users = False
 
+    db_add_queue = queues.Queue()
+    db_task_started = False
+
+
     def __init__(self, session_id):
         self.generic_eamuse_session = session_id
         self.command_handlers['help'] = self.help_command
@@ -117,6 +121,9 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.auto_task())
             self.auto_task_created = True
             print("Created auto thread")
+        if not self.db_task_started:
+            self.loop.create_task(self.db_task())
+            self.db_task_started = True
 
     async def on_message(self, message: discord.Message):
         if 'commands' not in self.authorized_channels:
@@ -490,6 +497,7 @@ class DDRBotClient(discord.Client):
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
+            await self.db_add_queue.put((message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -611,6 +619,8 @@ class DDRBotClient(discord.Client):
                         screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
                         archive_screenshot(user.id,
                                            '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
+                        await self.db_add_queue.put(
+                            (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
                     if len(screenshot_files) > 10:
                         screenshot_files = divide_chunks(screenshot_files, 10)
                         for fileset in screenshot_files:
@@ -623,6 +633,43 @@ class DDRBotClient(discord.Client):
 
         await asyncio.sleep(60)
         self.loop.create_task(self.auto_task())
+
+    async def db_task(self):
+        db.connect()
+        db.create_tables([User, Score])
+        while not self.db_add_queue.empty():
+            item = await self.db_add_queue.get()
+            # Check user
+            u = User.get_by_id(item[0])
+            if u is None:
+                u = User(id=int(item[0]), display_name=self.get_user(item[0]).name)
+                u.save()
+            from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
+            from PIL import Image
+            import io
+            img = Image.open("%s/%s" % (item[0], item[1]))
+            ss = DDRScreenshot(img)
+            sd = DDRParsedData(ss)
+            print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s" %
+                  (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
+                   sd.play_ex_score))
+            if '*' in sd.play_ex_score:
+                exscore_int = int(sd.play_ex_score.value.split('*')[0])
+            else:
+                exscore_int = int(sd.play_ex_score.value)
+            s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
+                         full_combo=sd.play_full_combo, doubles_play=('DOUBLES' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
+                         ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
+                         great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
+                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value))
+
+            s.save()
+
+
+
+
+        await asyncio.sleep(10)
+        self.loop.create_task(self.db_task())
 
 
 if __name__ == "__main__":

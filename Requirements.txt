@@ -1,4 +1,7 @@
 requests
 discord.py
-sqlalchemy
+peewee
 python-telegram-bot
+Pillow
+Pillow-PIL
+pytesseract

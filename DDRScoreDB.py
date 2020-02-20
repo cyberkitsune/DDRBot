@@ -1,35 +1,32 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Boolean
+from peewee import *
+import datetime
 
-class DDRScoreDB(object):
+db = SqliteDatabase('score_db.db')
 
-    def __init__(self):
-        self.engine = create_engine("sqlite://ddr_score.db")
-        self.meta = MetaData()
+class BaseModel(Model):
+    class Meta:
+        database = db
 
-        self.scores = Table(
-            'scores', self.meta,
-            Column('id', Integer, primary_key=True),
-            Column('song_name', String),
-            Column('song_artist', String),
-            Column('song_difficulty', String),
-            Column('letter_grade', String),
-            Column('money_score', String),
-            Column('ex_score', String),
-            Column('doubles', Boolean),
-            Column('marv', Integer),
-            Column('perfect', Integer),
-            Column('great', Integer),
-            Column('good', Integer),
-            Column('OK', Integer),
-            Column('miss', Integer),
+class User(BaseModel):
+    id = IntegerField(primary_key=True)
+    display_name = TextField()
 
 
-        )
-
-        self.users = Table(
-            'users', self.meta,
-            Column('id', Integer, primary_key=True),
-            Column('display_name', String),
-        )
-
-        self.meta.create_all(self.engine)
+class Score(BaseModel):
+    id = IntegerField(primary_key=True)
+    user = ForeignKeyField(User, backref='scores')
+    song_title = TextField()
+    song_artist = TextField()
+    letter_grade = TextField()
+    full_combo = TextField()
+    doubles_play = BooleanField()
+    money_score = IntegerField()
+    ex_score = IntegerField()
+    marv_count = IntegerField()
+    perf_count = IntegerField()
+    great_count = IntegerField()
+    good_count = IntegerField()
+    OK_count = IntegerField()
+    miss_count = IntegerField()
+    max_combo = IntegerField()
+    recorded_time = DateTimeField(default=datetime.datetime.now)
