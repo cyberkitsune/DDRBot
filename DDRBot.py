@@ -11,7 +11,7 @@ from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score
-    db.open()
+    db.connect()
 
 
 def divide_chunks(l, n):
