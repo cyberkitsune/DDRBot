@@ -689,7 +689,7 @@ class DDRBotClient(discord.Client):
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLES' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
                          great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
-                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value))
+                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item[1])
 
             s.save()
 
