@@ -431,7 +431,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("DDR GENIE (BETA) is not enabled on this bot instance.")
             return
 
-        from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
+        from DDRGenie.DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
         from PIL import Image
         import io
         args = message.content.split(' ')
