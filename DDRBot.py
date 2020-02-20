@@ -471,9 +471,10 @@ class DDRBotClient(discord.Client):
         else:
             score_str = []
             for score in query:
-                score_str.append("%s - %s | %s %sScore: %s COMBO: %s EX: %s" % (score.song_title, score.song_artist, score.letter_grade, score.full_combo,
+                score_str.append("%s by %s | %s %s | %s %sScore: %s COMBO: %s EX: %s" % (score.song_title, score.song_artist, score.difficulty_name,
+                                                                                         score.diffiulty_number, score.letter_grade, score.full_combo,
                                                                       score.money_score, score.max_combo, score.ex_score))
-            await message.channel.send("Top scores for %s\n"
+            await message.channel.send("Top scores for %s:\n"
                                        "```"
                                        "%s"
                                        "```" % (message.author.name, '\n'.join(score_str)))
@@ -689,7 +690,8 @@ class DDRBotClient(discord.Client):
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLES' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
                          great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
-                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item[1])
+                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item[1],
+                             difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value)
 
             s.save()
 
