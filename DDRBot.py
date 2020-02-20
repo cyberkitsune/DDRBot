@@ -11,7 +11,6 @@ from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score
-    import DDRGenie.DDRGenie as genie
     db.connect()
 
 
@@ -432,7 +431,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("DDR GENIE (BETA) is not enabled on this bot instance.")
             return
 
-        from genie.DDRDataTypes import DDRScreenshot, DDRParsedData
+        from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
         from PIL import Image
         import io
         args = message.content.split(' ')
@@ -668,7 +667,7 @@ class DDRBotClient(discord.Client):
                 u = User.get_by_id(int(item[0]))
 
 
-            from genie.DDRDataTypes import DDRScreenshot, DDRParsedData
+            from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
             from PIL import Image
             import io
             img = Image.open("./archive/%s/%s" % (item[0], item[1]))
