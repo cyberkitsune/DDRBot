@@ -124,6 +124,7 @@ class DDRBotClient(discord.Client):
         if not self.db_task_started:
             self.loop.create_task(self.db_task())
             self.db_task_started = True
+            print("Created DB task")
 
     async def on_message(self, message: discord.Message):
         if 'commands' not in self.authorized_channels:
