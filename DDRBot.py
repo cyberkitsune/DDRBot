@@ -92,6 +92,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['memeon'] = self.shitpost_authorize
         if os.path.exists("DDR_GENIE_ON"):
             self.command_handlers['genie'] = self.genie_command
+            self.command_handlers['top'] = self.top_scores
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         super().__init__()
@@ -459,6 +460,22 @@ class DDRBotClient(discord.Client):
                                       pd.score_miss_count, disclaimer)
 
         await message.channel.send(msg)
+
+    async def top_command(self, message):
+        db.connect()
+        query = Score.select().where(Score.user == int(message.author.id)).order_by(Score.money_score).limit(5)
+        if not query.exists():
+            await message.channel.send("You don't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores.")
+        else:
+            score_str = []
+            for score in query:
+                score_str.append("%s - %s | %s %sScore: %s COMBO: %s EX: %s" % (score.song_title, score.song_artist, score.letter_grade, score.full_combo,
+                                                                      score.money_score, score.max_combo, score.ex_score))
+            await message.channel.send("Top scores for %s\n"
+                                       "```"
+                                       "%s"
+                                       "```" % (message.author.name, '\n'.join(score_str)))
+        db.close()
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
