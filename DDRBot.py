@@ -670,6 +670,7 @@ class DDRBotClient(discord.Client):
 
 
         await asyncio.sleep(10)
+        db.close()
         self.loop.create_task(self.db_task())
 
 
