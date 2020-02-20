@@ -452,12 +452,12 @@ class DDRBotClient(discord.Client):
             disclaimer = ""
         msg = "```" \
               "DDR Play by: %s\n" \
-              "Song: %s | Artist: %s\n" \
+              "Song: %s | Artist: %s [%i%% sure on this]\n" \
               "%s %s Play (Difficulty %s) \n" \
               "Grade: %s %s| Score: %s | Max Combo: %s | EXScore: %s\n" \
               "MARVELOUS %s | PERFECT %s | GREAT %s | GOOD %s | OK %s | MISS %s\n" \
               "%s```\n" \
-              "- DDR GENIE [BETA]" % (pd.dancer_name, pd.song_title, pd.song_artist, pd.chart_play_mode, pd.chart_difficulty,
+              "- DDR GENIE [BETA]" % (pd.dancer_name, pd.song_title, pd.song_artist, int(pd.title_conf * 100), pd.chart_play_mode, pd.chart_difficulty,
                                       pd.chart_difficulty_number, pd.play_letter_grade, pd.play_full_combo, int(pd.play_money_score.value), pd.play_max_combo, pd.play_ex_score,
                                       pd.score_marv_count, pd.score_perfect_count, pd.score_great_count, pd.score_good_count, pd.score_OK_count,
                                       pd.score_miss_count, disclaimer)
