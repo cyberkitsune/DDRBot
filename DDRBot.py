@@ -641,10 +641,14 @@ class DDRBotClient(discord.Client):
         while not self.db_add_queue.empty():
             item = await self.db_add_queue.get()
             # Check user
-            u = User.get_by_id(item[0])
-            if u is None:
+            query = User.select().where(id == int(item[0]))
+            if not query.exists():
                 u = User(id=int(item[0]), display_name=self.get_user(item[0]).name)
                 u.save()
+            else:
+                u = User.get_by_id(int(item[0]))
+
+
             from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
             from PIL import Image
             import io
