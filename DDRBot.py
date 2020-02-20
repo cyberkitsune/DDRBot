@@ -652,7 +652,7 @@ class DDRBotClient(discord.Client):
             from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
             from PIL import Image
             import io
-            img = Image.open("%s/%s" % (item[0], item[1]))
+            img = Image.open("./archive/%s/%s" % (item[0], item[1]))
             ss = DDRScreenshot(img)
             sd = DDRParsedData(ss)
             print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s" %
