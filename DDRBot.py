@@ -465,7 +465,7 @@ class DDRBotClient(discord.Client):
         await message.channel.send(msg)
 
     async def top_scores(self, message):
-        query = Score.select().where(Score.user == int(message.author.id)).order_by(Score.money_score).limit(5)
+        query = Score.select().where(Score.user == int(message.author.id)).order_by(Score.money_score.desc()).limit(5)
         if not query.exists():
             await message.channel.send("You don't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores.")
         else:
