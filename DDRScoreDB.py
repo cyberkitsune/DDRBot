@@ -17,7 +17,7 @@ class Score(BaseModel):
     user = ForeignKeyField(User, backref='scores')
     song_title = TextField()
     song_artist = TextField()
-    diffiulty_number = IntegerField()
+    difficulty_number = IntegerField()
     difficulty_name = TextField()
     letter_grade = TextField()
     full_combo = TextField()
