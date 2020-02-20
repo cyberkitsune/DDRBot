@@ -11,6 +11,7 @@ from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score
+    db.open()
 
 
 def divide_chunks(l, n):
@@ -157,6 +158,8 @@ class DDRBotClient(discord.Client):
                             await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
                     except YeetException as ex:
                         await self.logout()
+                        if db is not None:
+                            db.close()
                         await self.close()
                     except Exception as ex:
                         await message.channel.send("Oops! uwu an error occured running that command.\nTechnical Details of Error: ```\n%s```" % (traceback.format_exc()))
@@ -462,7 +465,6 @@ class DDRBotClient(discord.Client):
         await message.channel.send(msg)
 
     async def top_scores(self, message):
-        db.connect()
         query = Score.select().where(Score.user == int(message.author.id)).order_by(Score.money_score).limit(5)
         if not query.exists():
             await message.channel.send("You don't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores.")
@@ -475,7 +477,6 @@ class DDRBotClient(discord.Client):
                                        "```"
                                        "%s"
                                        "```" % (message.author.name, '\n'.join(score_str)))
-        db.close()
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
@@ -653,7 +654,6 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.auto_task())
 
     async def db_task(self):
-        db.connect()
         db.create_tables([User, Score])
         while not self.db_add_queue.empty():
             item = await self.db_add_queue.get()
@@ -697,7 +697,6 @@ class DDRBotClient(discord.Client):
 
 
         await asyncio.sleep(10)
-        db.close()
         self.loop.create_task(self.db_task())
 
 
