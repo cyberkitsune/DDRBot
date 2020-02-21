@@ -471,45 +471,30 @@ class DDRBotClient(discord.Client):
         if len(args) < 2 or 'http' not in args[1]:
             await message.channel.send("Send me a URL to a DDR screenshot and I'll try and parse it.")
             return
+        async with message.channel.typing():
+            await message.channel.send("Please wait, downloading and trying to parse your screenshot...")
 
-        await message.channel.send("Please wait, downloading and trying to parse your screenshot...")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(args[1]) as r:
+                    if r.status == 200:
+                        data = await r.read()
+                    else:
+                        data = None
+            img = Image.open(io.BytesIO(data))
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(args[1]) as r:
-                if r.status == 200:
-                    data = await r.read()
-                else:
-                    data = None
-        img = Image.open(io.BytesIO(data))
+            if self.deep_ai is not None:
+                img_arr = io.BytesIO()
+                img.save(img_arr, format='PNG')
+                new_img = await self.upscale_image(img_arr.getvalue())
+                img = Image.open(new_img)
+                scale_factor = 2
+            else:
+                scale_factor = 1
+            ss = DDRScreenshot(img, size_multiplier=scale_factor)
+            pd = DDRParsedData(ss)
+            emb = generate_embed(pd, pd.dancer_name.value)
 
-        if self.deep_ai is not None:
-            img_arr = io.BytesIO()
-            img.save(img_arr, format='PNG')
-            new_img = await self.upscale_image(img_arr.getvalue())
-            img = Image.open(new_img)
-            scale_factor = 2
-        else:
-            scale_factor = 1
-        ss = DDRScreenshot(img, size_multiplier=scale_factor)
-        pd = DDRParsedData(ss)
-        emb = generate_embed(pd, pd.dancer_name.value)
-        if '*' in pd.play_ex_score.value:
-            disclaimer = "\n* Can't read EXScore, using calculated value."
-        else:
-            disclaimer = ""
-        msg = "```" \
-              "DDR Play by: %s\n" \
-              "Song: %s | Artist: %s [%i%% sure on this]\n" \
-              "%s %s Play (Difficulty %s) \n" \
-              "Grade: %s %s| Score: %s | Max Combo: %s | EXScore: %s\n" \
-              "MARVELOUS %s | PERFECT %s | GREAT %s | GOOD %s | OK %s | MISS %s\n" \
-              "%s```\n" \
-              "- DDR GENIE [BETA]" % (pd.dancer_name, pd.song_title, pd.song_artist, int(pd.title_conf * 100), pd.chart_play_mode, pd.chart_difficulty,
-                                      pd.chart_difficulty_number, pd.play_letter_grade, pd.play_full_combo, int(pd.play_money_score.value), pd.play_max_combo, pd.play_ex_score,
-                                      pd.score_marv_count, pd.score_perfect_count, pd.score_great_count, pd.score_good_count, pd.score_OK_count,
-                                      pd.score_miss_count, disclaimer)
-
-        await message.channel.send(embed=emb)
+            await message.channel.send(embed=emb)
 
     async def top_scores(self, message):
         args = message.content.split(' ')
