@@ -52,6 +52,19 @@ def load_json(filename):
         return obj
 
 
+def get_emoji_for_fc(fc_text):
+    if 'MFC' in fc_text:
+        return '<:mfc:472191264796966926>'
+    elif 'PFC' in fc_text:
+        return '<:pfc:472191264402702347>'
+    elif 'GFC' in fc_text:
+        return '<:gfc:472191264830259201>'
+    elif 'FC' in fc_text:
+        return '<:fc:472191264453033984>'
+    else:
+        return ''
+
+
 def generate_embed(score_data, score_player):
     """
     :type score_data: DDRParsedData
@@ -63,7 +76,7 @@ def generate_embed(score_data, score_player):
     emb.title = "%s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.chart_difficulty.value[0],
                                      first_mode, score_data.chart_difficulty_number.value)
     emb.description = "Played by %s" % score_player
-    emb.add_field(name="💯 Grade", value="%s %s" % (score_data.play_letter_grade, score_data.play_full_combo), inline=True)
+    emb.add_field(name="💯 Grade", value="%s %s" % (score_data.play_letter_grade, get_emoji_for_fc(score_data.play_full_combo)), inline=True)
     emb.add_field(name="📈 Score", value="%s" % score_data.play_money_score, inline=True)
     emb.add_field(name="<:mfc:472191264796966926> EXScore", value="%s" % score_data.play_ex_score, inline=True)
     emb.add_field(name="🔢 Max Combo", value="%s" % score_data.play_max_combo, inline=True)
@@ -90,7 +103,7 @@ def generate_embed_from_db(score_data, score_player):
     emb.title = "%s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.difficulty_name[0],
                                      first_mode, score_data.difficulty_number)
     emb.description = "Played by %s" % score_player
-    emb.add_field(name="💯 Grade", value="%s %s" % (score_data.letter_grade, score_data.full_combo), inline=True)
+    emb.add_field(name="💯 Grade", value="%s %s" % (score_data.letter_grade, get_emoji_for_fc(score_data.full_combo)), inline=True)
     emb.add_field(name="📈 Score", value="%s" % score_data.money_score, inline=True)
     emb.add_field(name="<:mfc:472191264796966926> EXScore", value="%s" % score_data.ex_score, inline=True)
     emb.add_field(name="🔢 Max Combo", value="%s" % score_data.max_combo, inline=True)
