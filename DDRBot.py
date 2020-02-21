@@ -454,7 +454,7 @@ class DDRBotClient(discord.Client):
         if self.deep_ai is not None:
             img_arr = io.BytesIO()
             img.save(img_arr, format='PNG')
-            new_img = await self.upscale_image(img_arr)
+            new_img = await self.upscale_image(img_arr.getvalue())
             img = Image.open(new_img)
             scale_factor = 2
         else:
@@ -689,7 +689,7 @@ class DDRBotClient(discord.Client):
             if self.deep_ai is not None:
                 img_arr = io.BytesIO()
                 img.save(img_arr, format='PNG')
-                new_img = await self.upscale_image(img_arr)
+                new_img = await self.upscale_image(img_arr.getvalue())
                 img = Image.open(new_img)
                 scale_factor = 2
             else:
