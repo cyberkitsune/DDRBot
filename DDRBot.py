@@ -450,7 +450,7 @@ class DDRBotClient(discord.Client):
         async with aiohttp.ClientSession() as session:
             async with session.get(args[1]) as r:
                 if r.status == 200:
-                    data = r.content
+                    data = await r.read()
                 else:
                     data = None
         img = Image.open(io.BytesIO(data))
@@ -740,7 +740,7 @@ class DDRBotClient(discord.Client):
                 js = await r.json()
                 if 'output_url' in js:
                     r1 = await session.get(js['output_url'])
-                    c = r1.content
+                    c = await r1.read()
                     reqdata = io.BytesIO(c)
                     return reqdata
                 else:
