@@ -507,14 +507,16 @@ class DDRBotClient(discord.Client):
             await message.channel.send("%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores. [err 2]" % u.display_name)
         else:
             score_str = []
+            name = ''
             for score in query:
                 score_str.append("```%s by %s | %s %s | %s %sScore: %s COMBO: %s EX: %s | (%i%% sure)```" % (score.song_title.rstrip(), score.song_artist.rstrip(), score.difficulty_name,
                                                                                          score.difficulty_number, score.letter_grade, score.full_combo,
                                                                       score.money_score, score.max_combo, score.ex_score, int(score.name_confidence * 100)))
+                name = score.user.display_name
             await message.channel.send("Top scores for %s:\n"
                                        ""
                                        "%s"
-                                       "[Powered by DDRGenie BETA]" % (message.author.name, '\n'.join(score_str)))
+                                       "[Powered by DDRGenie BETA]" % (name, '\n'.join(score_str)))
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
