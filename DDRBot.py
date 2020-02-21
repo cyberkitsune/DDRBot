@@ -536,7 +536,8 @@ class DDRBotClient(discord.Client):
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
-            await self.db_add_queue.put((message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
+            if 'dance' in photo['game_name'].lower():
+                await self.db_add_queue.put((message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -658,8 +659,9 @@ class DDRBotClient(discord.Client):
                         screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
                         archive_screenshot(user.id,
                                            '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
-                        await self.db_add_queue.put(
-                            (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
+                        if 'dance' in photo['game_name'].lower():
+                            await self.db_add_queue.put(
+                                (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
                     if len(screenshot_files) > 10:
                         screenshot_files = divide_chunks(screenshot_files, 10)
                         for fileset in screenshot_files:
