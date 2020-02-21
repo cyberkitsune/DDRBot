@@ -497,7 +497,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Top scores for %s:\n"
                                        ""
                                        "%s"
-                                       "" % (message.author.name, '\n'.join(score_str)))
+                                       "[Powered by DDRGenie BETA]" % (message.author.name, '\n'.join(score_str)))
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
