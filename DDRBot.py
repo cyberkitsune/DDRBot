@@ -491,7 +491,7 @@ class DDRBotClient(discord.Client):
             u = User.get_or_none(display_name=' '.join(args[2:]))
         else:
             other_user = False
-            u = User.get_or_none(id=message.author.id)
+            u = User.get_or_none(id=int(message.author.id))
 
         if u is None:
             if other_user:
