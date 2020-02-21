@@ -11,6 +11,7 @@ from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score
+    from DDRGenie.DDRDataTypes import DDRParsedData, DDRScreenshot
     db.connect()
 
 
@@ -49,6 +50,26 @@ def load_json(filename):
     else:
         print("Loaded %s successfully." % filename)
         return obj
+
+
+def generate_embed(score_data, score_player):
+    """
+    :type score_data: DDRParsedData
+    """
+    emb = discord.Embed()
+    emb.title = "%s - %s" % (score_data.song_title, score_data.song_artist)
+    emb.description = "Played by %s" % score_player
+    emb.add_field(name="Grade", value="%s" % score_data.play_letter_grade, inline=True)
+    emb.add_field(name="Score", value="%s" % score_data.play_money_score, inline=True)
+    emb.add_field(name="EXScore", value="%s" % score_data.play_ex_score, inline=True)
+    emb.add_field(name="Max Combo", value="%s" % score_data.play_max_combo, inline=True)
+    emb.add_field(name="Marvelous", value="%s" % score_data.score_marv_count, inline=True)
+    emb.add_field(name="Perfect", value="%s" % score_data.score_perfect_count, inline=True)
+    emb.add_field(name="Great", value="%s" % score_data.score_great_count, inline=True)
+    emb.add_field(name="Good", value="%s" % score_data.score_good_count, inline=True)
+    emb.add_field(name="OK", value="%s" % score_data.score_OK_count, inline=True)
+    emb.add_field(name="Miss", value="%s" % score_data.score_miss_count, inline=True)
+    return emb
 
 
 class YeetException(Exception):
@@ -466,6 +487,7 @@ class DDRBotClient(discord.Client):
             scale_factor = 1
         ss = DDRScreenshot(img, size_multiplier=scale_factor)
         pd = DDRParsedData(ss)
+        emb = generate_embed(pd, pd.dancer_name.value)
         if '*' in pd.play_ex_score.value:
             disclaimer = "\n* Can't read EXScore, using calculated value."
         else:
@@ -482,7 +504,7 @@ class DDRBotClient(discord.Client):
                                       pd.score_marv_count, pd.score_perfect_count, pd.score_great_count, pd.score_good_count, pd.score_OK_count,
                                       pd.score_miss_count, disclaimer)
 
-        await message.channel.send(msg)
+        await message.channel.send(embed=emb)
 
     async def top_scores(self, message):
         args = message.content.split(' ')
@@ -761,6 +783,7 @@ class DDRBotClient(discord.Client):
                     return reqdata
                 else:
                     raise Exception("DeepAI didn't return an upscaled image...\nOutput: %s", js)
+
 
 
 if __name__ == "__main__":
