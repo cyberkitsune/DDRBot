@@ -485,9 +485,26 @@ class DDRBotClient(discord.Client):
         await message.channel.send(msg)
 
     async def top_scores(self, message):
-        query = Score.select().where(Score.user == int(message.author.id)).order_by(Score.money_score.desc()).limit(5)
+        args = message.content.split(' ')
+        if len(args) > 1:
+            other_user = True
+            u = User.get_or_none(display_name=' '.join(args[2:]))
+        else:
+            other_user = False
+            u = User.get_or_none(id=message.author.id)
+
+        if u is None:
+            if other_user:
+                name = ' '.join(args[2:])
+            else:
+                name = message.author.name
+            await message.channel.send(
+                "%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores." % name)
+            return
+
+        query = Score.select().where(Score.user == u).order_by(Score.money_score.desc()).limit(5)
         if not query.exists():
-            await message.channel.send("You don't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores.")
+            await message.channel.send("%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores." % u.display_name)
         else:
             score_str = []
             for score in query:
