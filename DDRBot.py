@@ -727,10 +727,9 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.db_task())
 
     async def upscale_image(self, image):
-        r = await aio_requests.post("https://api.deepai.org/api/waifu2x",
-                                    files={'image': image},
-                                    headers={'api-key': '%s' % self.deep_ai.strip()})
-        js = await r.json()
+        r = requests.post("https://api.deepai.org/api/waifu2x", files={'image': image},
+                          headers={'api-key': '%s' % self.deep_ai.strip()})
+        js = r.json()
         if 'output_url' in js:
             r1 = await aio_requests.get(js['output_url'])
             c = await r1.content()
