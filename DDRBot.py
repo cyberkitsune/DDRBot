@@ -731,8 +731,8 @@ class DDRBotClient(discord.Client):
                           headers={'api-key': '%s' % self.deep_ai.strip()})
         js = r.json()
         if 'output_url' in js:
-            r1 = await aio_requests.get(js['output_url'])
-            c = await r1.content()
+            r1 = requests.get(js['output_url'])
+            c = r1.content
             reqdata = io.BytesIO(c)
             return reqdata
         else:
