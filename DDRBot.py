@@ -8,6 +8,7 @@ from py573jp.Exceptions import EALinkException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
+from aiohttp_requests import requests as aio_requests
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score
@@ -76,7 +77,6 @@ class DDRBotClient(discord.Client):
     db_add_queue = queues.Queue()
     db_task_started = False
 
-
     def __init__(self, session_id):
         self.generic_eamuse_session = session_id
         self.command_handlers['help'] = self.help_command
@@ -96,6 +96,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['top'] = self.top_scores
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
+        self.deep_ai = None
         super().__init__()
 
     async def on_ready(self):
@@ -127,6 +128,12 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.db_task())
             self.db_task_started = True
             print("Created DB task")
+        if os.path.exists("deepai_key.txt"):
+            print("DeepAI Key Exists. Enabling AI upscaling.")
+            with open("deepai_key.txt", 'r') as f:
+                self.deep_ai = f.read()
+        else:
+            self.deep_ai = None
 
     async def on_message(self, message: discord.Message):
         if 'commands' not in self.authorized_channels:
@@ -444,7 +451,15 @@ class DDRBotClient(discord.Client):
         data = requests.get(args[1]).content
         img = Image.open(io.BytesIO(data))
 
-        ss = DDRScreenshot(img)
+        if self.deep_ai is not None:
+            img_arr = io.BytesIO()
+            img.save(img_arr, format='PNG')
+            new_img = await self.upscale_image(img_arr)
+            img = Image.open(new_img)
+            scale_factor = 2
+        else:
+            scale_factor = 1
+        ss = DDRScreenshot(img, size_multiplier=scale_factor)
         pd = DDRParsedData(ss)
         if '*' in pd.play_ex_score.value:
             disclaimer = "\n* Can't read EXScore, using calculated value."
@@ -671,7 +686,15 @@ class DDRBotClient(discord.Client):
             from PIL import Image
             import io
             img = Image.open("./archive/%s/%s" % (item[0], item[1]))
-            ss = DDRScreenshot(img)
+            if self.deep_ai is not None:
+                img_arr = io.BytesIO()
+                img.save(img_arr, format='PNG')
+                new_img = await self.upscale_image(img_arr)
+                img = Image.open(new_img)
+                scale_factor = 2
+            else:
+                scale_factor = 1
+            ss = DDRScreenshot(img, size_multiplier=scale_factor)
             sd = DDRParsedData(ss)
             print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s" %
                   (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
@@ -702,6 +725,19 @@ class DDRBotClient(discord.Client):
 
         await asyncio.sleep(10)
         self.loop.create_task(self.db_task())
+
+    async def upscale_image(self, image):
+        r = await aio_requests.post("https://api.deepai.org/api/waifu2x",
+                                    files={'image': image},
+                                    headers={'api-key': '%s' % self.deep_ai.strip()})
+        js = await r.json()
+        if 'output_url' in js:
+            r1 = await aio_requests.get(js['output_url'])
+            c = await r1.content()
+            reqdata = io.BytesIO(c)
+            return reqdata
+        else:
+            raise Exception("DeepAI didn't return an upscaled image...\nOutput: %s", js)
 
 
 if __name__ == "__main__":
