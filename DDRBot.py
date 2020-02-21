@@ -491,7 +491,7 @@ class DDRBotClient(discord.Client):
         else:
             score_str = []
             for score in query:
-                score_str.append("```%s by %s | %s %s | %s %sScore: %s COMBO: %s EX: %s | (%i%% sure)```" % (score.song_title, score.song_artist, score.difficulty_name,
+                score_str.append("```%s by %s | %s %s | %s %sScore: %s COMBO: %s EX: %s | (%i%% sure)```" % (score.song_title.rstrip(), score.song_artist.rstrip(), score.difficulty_name,
                                                                                          score.difficulty_number, score.letter_grade, score.full_combo,
                                                                       score.money_score, score.max_combo, score.ex_score, int(score.name_confidence * 100)))
             await message.channel.send("Top scores for %s:\n"
