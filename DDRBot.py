@@ -551,7 +551,9 @@ class DDRBotClient(discord.Client):
                 for score in query:
                     name = score.user.display_name
                     score_embs.append(generate_embed_from_db(score, name))
-                await message.channel.send("Top 3 scores for %s:", embeds=score_embs)
+                await message.channel.send("Top %i scores for %s:" % (len(score_embs), u.display_name))
+                for emb in score_embs:
+                    await message.channel.send(embed=emb)
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
