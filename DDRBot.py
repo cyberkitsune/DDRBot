@@ -700,7 +700,7 @@ class DDRBotClient(discord.Client):
             # Check user
             query = User.select().where(id == int(item[0]))
             if not query.exists():
-                u = User(id=int(item[0]), display_name=self.get_user(item[0]).name)
+                u = User.create(id=int(item[0]), display_name=self.get_user(item[0]).name)
                 u.save()
             else:
                 u = User.get_by_id(int(item[0]))
