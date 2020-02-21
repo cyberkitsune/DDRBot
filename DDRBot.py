@@ -456,6 +456,7 @@ class DDRBotClient(discord.Client):
         img = Image.open(io.BytesIO(data))
 
         if self.deep_ai is not None:
+            await message.channel.send("Upscaling screenshot using `waifu2x` for clarity...")
             img_arr = io.BytesIO()
             img.save(img_arr, format='PNG')
             new_img = await self.upscale_image(img_arr.getvalue())
