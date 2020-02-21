@@ -741,13 +741,10 @@ class DDRBotClient(discord.Client):
                              difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf)
 
             s.save()
-            db.commit()
 
             await asyncio.sleep(2)  # Free up time for catch up
 
-
-
-
+        db.commit()
         await asyncio.sleep(10)
         self.loop.create_task(self.db_task())
 
