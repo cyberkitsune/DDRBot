@@ -57,7 +57,11 @@ def generate_embed(score_data, score_player):
     :type score_data: DDRParsedData
     """
     emb = discord.Embed()
-    emb.title = "%s - %s" % (score_data.song_title, score_data.song_artist)
+    first_mode = score_data.chart_play_mode.value[0]
+    if first_mode == "V":
+        first_mode = 'S'
+    emb.title = "%s - %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.chart_difficulty.value[0],
+                                     first_mode, score_data.chart_difficulty_number.value)
     emb.description = "Played by %s" % score_player
     emb.add_field(name="💯 Grade", value="%s %s" % (score_data.play_letter_grade, score_data.play_full_combo), inline=True)
     emb.add_field(name="📈 Score", value="%s" % score_data.play_money_score, inline=True)
