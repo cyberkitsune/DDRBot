@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback, random, requests
+import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -8,7 +8,6 @@ from py573jp.Exceptions import EALinkException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
-from aiohttp_requests import requests as aio_requests
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score
@@ -448,7 +447,12 @@ class DDRBotClient(discord.Client):
 
         await message.channel.send("Please wait, downloading and trying to parse your screenshot...")
 
-        data = requests.get(args[1]).content
+        async with aiohttp.ClientSession() as session:
+            async with session.get(args[1]) as r:
+                if r.status == 200:
+                    data = r.content
+                else:
+                    data = None
         img = Image.open(io.BytesIO(data))
 
         if self.deep_ai is not None:
@@ -727,16 +731,18 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.db_task())
 
     async def upscale_image(self, image):
-        r = requests.post("https://api.deepai.org/api/waifu2x", files={'image': image},
-                          headers={'api-key': '%s' % self.deep_ai.strip()})
-        js = r.json()
-        if 'output_url' in js:
-            r1 = requests.get(js['output_url'])
-            c = r1.content
-            reqdata = io.BytesIO(c)
-            return reqdata
-        else:
-            raise Exception("DeepAI didn't return an upscaled image...\nOutput: %s", js)
+        async with aiohttp.ClientSession() as session:
+            data = {'image': image}
+            headers = {'api-key': '%s' % self.deep_ai.strip()}
+            async with session.post("https://api.deepai.org/api/waifu2x", data=data, headers=headers) as r:
+                js = await r.json()
+                if 'output_url' in js:
+                    r1 = await session.get(js['output_url'])
+                    c = r1.content
+                    reqdata = io.BytesIO(c)
+                    return reqdata
+                else:
+                    raise Exception("DeepAI didn't return an upscaled image...\nOutput: %s", js)
 
 
 if __name__ == "__main__":

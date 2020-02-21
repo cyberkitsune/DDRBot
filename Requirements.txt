@@ -5,4 +5,3 @@ python-telegram-bot
 Pillow
 Pillow-PIL
 pytesseract
-aiohttp-requests
