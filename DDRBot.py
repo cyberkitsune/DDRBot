@@ -499,12 +499,12 @@ class DDRBotClient(discord.Client):
             else:
                 name = message.author.name
             await message.channel.send(
-                "%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores." % name)
+                "%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores. [err 1]" % name)
             return
 
         query = Score.select().where(Score.user == u).order_by(Score.money_score.desc()).limit(5)
         if not query.exists():
-            await message.channel.send("%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores." % u.display_name)
+            await message.channel.send("%s doesn't have any scores recorded! Use the `scores` command or turn `auto` on to start recording scores. [err 2]" % u.display_name)
         else:
             score_str = []
             for score in query:
