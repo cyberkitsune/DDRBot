@@ -488,14 +488,14 @@ class DDRBotClient(discord.Client):
         args = message.content.split(' ')
         if len(args) > 1:
             other_user = True
-            u = User.get_or_none(display_name=' '.join(args[2:]))
+            u = User.get_or_none(display_name=' '.join(args[1:]))
         else:
             other_user = False
             u = User.get_or_none(id=int(message.author.id))
 
         if u is None:
             if other_user:
-                name = ' '.join(args[2:])
+                name = ' '.join(args[1:])
             else:
                 name = message.author.name
             await message.channel.send(
