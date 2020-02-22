@@ -927,13 +927,21 @@ class DDRBotClient(discord.Client):
             if self.deep_ai is not None:
                 img_arr = io.BytesIO()
                 img.save(img_arr, format='PNG')
-                new_img = await self.upscale_image(img_arr.getvalue())
-                img = Image.open(new_img)
-                scale_factor = 2
+                try:
+                    new_img = await self.upscale_image(img_arr.getvalue())
+                    img = Image.open(new_img)
+                    scale_factor = 2
+                except Exception as ex:
+                    print("Can't upscale image. Defaulting to 1x. Err: %s" % ex)
+                    scale_factor = 1
             else:
                 scale_factor = 1
-            ss = DDRScreenshot(img, size_multiplier=scale_factor)
-            sd = DDRParsedData(ss)
+            try:
+                ss = DDRScreenshot(img, size_multiplier=scale_factor)
+                sd = DDRParsedData(ss)
+            except Exception as ex:
+                print("Can't parse image, skipping... Ex: %s" % ex)
+                continue
             print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
                   (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
                    sd.play_ex_score, sd.date_stamp))
