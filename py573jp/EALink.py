@@ -74,7 +74,7 @@ class EALink(object):
 
         r = self.session.get("%s/blog/post/webdav/detail.php?filepath=%s" % (base_url, file_path), headers=headers)
         if 'application/json' in r.headers['content-type']:
-            raise Exception("Webdav file %s is not a JPEG! I got json...\nOutput: %s" % (file_path, r.content))
+            raise EALinkException("Can't fetch screenshots, login failure?", jscontext=json.loads(r.content))
         elif r.headers['content-type'] != 'image/jpeg':
             raise Exception("Webdav file %s is not a JPEG! Got %s" % (file_path, r.headers['content-type']))
 

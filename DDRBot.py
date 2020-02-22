@@ -795,7 +795,14 @@ class DDRBotClient(discord.Client):
 
                     screenshot_files = []
                     for photo in new_photos:
-                        data = eal.get_jpeg_data_for(photo['file_path'])
+                        try:
+                            data = eal.get_jpeg_data_for(photo['file_path'])
+                        except EALinkException as ex:
+                            await channel.send("Hey! I got some weird error trying to automatically pick up this screenshot %s-%s.jpg... Let CyberKitsune know!\nDetails:\n"
+                                               "```%s```" % (photo['game_name'], photo['last_play_date'], ex.jscontext))
+                            print("Hey! I got some weird error trying to automatically pick up this screenshot %s-%s.jpg... Let CyberKitsune know!\nDetails:\n"
+                                               "```%s```" % (photo['game_name'], photo['last_play_date'], ex.jscontext))
+                            continue
                         screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
                         archive_screenshot(user.id,
                                            '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
