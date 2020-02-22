@@ -751,7 +751,17 @@ class DDRBotClient(discord.Client):
             for channel_id in self.authorized_channels['feed']:
                 channel = self.get_channel(int(channel_id))
                 if channel is not None:
-                    await channel.send(embed=emb)
+                    do_send = False
+                    if channel.id == 680575323271856273:
+                        do_send = True
+                    else:
+                        chn_ids = []
+                        for member in channel.members:
+                            chn_ids.append(member.id)
+                        if s.user.id in chn_ids:
+                            do_send = True
+                    if do_send:
+                        await channel.send(embed=emb)
 
         await asyncio.sleep(1)
         self.loop.create_task(self.feed_task())
