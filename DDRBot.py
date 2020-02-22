@@ -786,12 +786,17 @@ class DDRBotClient(discord.Client):
             if query2.exists():
                 print("Skipping duplicate score for %s..." % u.display_name)
                 continue
+            if sd.date_time is not None:
+                sc_time = sd.date_time
+            else:
+                sc_time = datetime.datetime.now()
             s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
                          great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
                          miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item[1],
-                             difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf)
+                             difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
+                             recorded_time=sc_time)
 
             s.save()
 
