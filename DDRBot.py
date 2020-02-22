@@ -762,7 +762,7 @@ class DDRBotClient(discord.Client):
                         print("Warned %s about their login failure." % user.name)
                         self.warned_auto_error.append(user_id)
                     else:
-                        print("I couldn't find user %i... Account deleted?" % user_id)
+                        print("I couldn't find user %s... Account deleted?" % user_id)
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
                     print("Exception fetching photos for %s\n%s" % (user_id, ex))
