@@ -693,7 +693,7 @@ class DDRBotClient(discord.Client):
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
             if 'dance' in photo['game_name'].lower():
-                await self.db_add_queue.put((message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
+                await self.db_add_queue.put((message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -868,7 +868,7 @@ class DDRBotClient(discord.Client):
                                            '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
                         if 'dance' in photo['game_name'].lower():
                             await self.db_add_queue.put(
-                                (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
+                                (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
                     if len(screenshot_files) == 0:
                         pass
                     elif len(screenshot_files) > 10:
@@ -922,10 +922,7 @@ class DDRBotClient(discord.Client):
             else:
                 exscore_int = int(sd.play_ex_score.value)
 
-            if sd.date_time is not None:
-                sc_time = sd.date_time
-            else:
-                sc_time = datetime.datetime.utcnow()
+            sc_time = datetime.datetime.utcfromtimestamp(int(item[2]))
             s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
