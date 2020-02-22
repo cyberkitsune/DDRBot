@@ -196,7 +196,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['setfeed'] = self.feed_authorize
             self.command_handlers['screenshot'] = self.fetch_screenshot
             self.command_handlers['show'] = self.show_score
-            self.command_handlers['pb'] = self.list_pb
+            #self.command_handlers['pb'] = self.list_pb
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         self.deep_ai = None
