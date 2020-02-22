@@ -31,6 +31,6 @@ class Score(BaseModel):
     OK_count = IntegerField()
     miss_count = IntegerField()
     max_combo = IntegerField()
-    recorded_time = DateTimeField(default=datetime.datetime.now)
+    recorded_time = DateTimeField(default=datetime.datetime.utcnow)
     file_name = TextField()
     name_confidence = FloatField()

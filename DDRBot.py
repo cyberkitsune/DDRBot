@@ -856,7 +856,7 @@ class DDRBotClient(discord.Client):
             if sd.date_time is not None:
                 sc_time = sd.date_time
             else:
-                sc_time = datetime.datetime.now()
+                sc_time = datetime.datetime.utcnow()
             s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
