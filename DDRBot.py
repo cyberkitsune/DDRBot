@@ -897,7 +897,7 @@ class DDRBotClient(discord.Client):
 
             query2 = Score.select().where(Score.user == u, Score.file_name == item[1])
             if query2.exists():
-                print("Skipping duplicate score for %s..." % u.display_name)
+                print("Skipping duplicate score for %s (%s)..." % (u.display_name, item[1]))
                 continue
 
             from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
