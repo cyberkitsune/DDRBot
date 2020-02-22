@@ -194,6 +194,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['genie'] = self.genie_command
             self.command_handlers['top'] = self.top_scores
             self.command_handlers['setfeed'] = self.feed_authorize
+            self.command_handlers['screenshot'] = self.fetch_screenshot
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         self.deep_ai = None
@@ -435,6 +436,27 @@ class DDRBotClient(discord.Client):
             self.authorized_channels['feed'].append(str(message.channel.id))
 
         save_json("channels.json", self.authorized_channels)
+
+    async def fetch_screenshot(self, message):
+        args = message.content.split(' ')
+        if len(args) < 2:
+            await message.channel.send("Usage: `%sscreenshot [screenshot_id]`" % self.command_prefix)
+            return
+
+        if not RepresentsInt(args[1]):
+            await message.channel.send("`%s` is not a number!\n"
+                                        "Usage: `%sscreenshot [screenshot_id]`" % (args[1], self.command_prefix))
+            return
+
+        s = Score.get_or_none(id=args[1])
+        if s is None:
+            await message.channel.send("I can't find a screenshot with ID `%s`" % args[1])
+            return
+
+        if os.path.exists("archive/%s/%s" % (s.user.id, s.file_name)):
+            await message.channel.send(file=discord.File("archive/%s/%s" % (s.user.id, s.file_name)))
+        else:
+            await message.channel.send("Weird, I don't have the screenshot file for that score recorded! 😦")
 
     async def help_command(self, message):
         await message.channel.send("Hi! I'm KitsuneBot! I can do various actions related to Bemani games and e-amusement!\n"
