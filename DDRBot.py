@@ -722,8 +722,9 @@ class DDRBotClient(discord.Client):
         if s is not None:
             emb = generate_embed_from_db(s, s.user.display_name)
             for channel_id in self.authorized_channels['feed']:
-                channel = self.get_channel(channel_id)
-                await channel.send(embed=emb)
+                channel = self.get_channel(int(channel_id))
+                if channel is not None:
+                    await channel.send(embed=emb)
 
         await asyncio.sleep(1)
         self.loop.create_task(self.feed_task())
@@ -798,7 +799,7 @@ class DDRBotClient(discord.Client):
                         try:
                             data = eal.get_jpeg_data_for(photo['file_path'])
                         except EALinkException as ex:
-                            await channel.send("Hey! I got some weird error trying to automatically pick up this screenshot %s-%s.jpg... Let CyberKitsune know!\nDetails:\n"
+                            await channel.send("Hey! I got some weird error trying to automatically pick up this screenshot `%s-%s.jpg`... Let CyberKitsune know!\nDetails:\n"
                                                "```%s```" % (photo['game_name'], photo['last_play_date'], ex.jscontext))
                             print("Hey! I got some weird error trying to automatically pick up this screenshot %s-%s.jpg... Let CyberKitsune know!\nDetails:\n"
                                                "```%s```" % (photo['game_name'], photo['last_play_date'], ex.jscontext))
