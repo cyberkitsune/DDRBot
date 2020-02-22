@@ -143,7 +143,7 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
     emb.add_field(name="<:emiok:572201794982248452> OK", value="%s (%0.2f%%)" % (score_data.OK_count, OK_percent), inline=True)
     emb.add_field(name="<:eming:572201816792629267> Miss", value="%s (%0.2f%%)" % (score_data.miss_count, miss_percent), inline=True)
     emb.add_field(name="🤔 Genie Confidence", value="%i%%" % (int(score_data.name_confidence * 100)))
-    emb.set_footer(text="%sshow %i | DDR-Genie [BETA]" % (cmd_prefix, score_data.id))
+    emb.set_footer(text="DDR-Genie [BETA] • %sshow %i" % (cmd_prefix, score_data.id))
     emb.timestamp = score_data.recorded_time
     return emb
 
