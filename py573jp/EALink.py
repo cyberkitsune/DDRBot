@@ -1,6 +1,6 @@
 import requests, json
 
-from .Exceptions import EALinkException
+from .Exceptions import EALinkException, EALoginException, EAMaintenanceException
 
 base_url = "https://aqb.s.konaminet.jp/aqb/"
 user_agent = "jp.konami.eam.link (Pixel2; Android 9.0; in-app; 20; app-version; 3.5.0)"
@@ -50,7 +50,6 @@ class EALink(object):
             else:
                 raise EALinkException("Unable to log in! Check your username / password / OTP. Server: %s" % js['message'], js)
 
-
     def get_screenshot_list(self):
         if not self.logged_in:
             self.login()
@@ -61,9 +60,9 @@ class EALink(object):
         if js is None:
             raise EALinkException("Can't parse response! Server Issues?", r.text)
         if 'list' not in js:
-            raise EALinkException("Unable to fetch photos! Maybe you've been logged out?", js)
+            raise EALoginException("Unable to fetch photos! Maybe you've been logged out?", js)
         if js['list'] is None:
-            raise EALinkException("Screenshot list is NULL! This usually indicates e-amusement maintenance. Try again later.")
+            raise EAMaintenanceException("Screenshot list is NULL! This usually indicates e-amusement maintenance. Try again later.")
         for photo in js['list']:
             photos.append(photo)
 
