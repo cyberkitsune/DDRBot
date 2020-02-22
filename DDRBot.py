@@ -759,6 +759,7 @@ class DDRBotClient(discord.Client):
                         await dmc.send("Hey! You have `%sauto` on but I can't seem to log into your account anymore!\n"
                                        "Please run %slink again to reconnect your account, or do `%sauto off` to disable this feature." %
                                        (self.command_prefix, self.command_prefix, self.command_prefix))
+                        print("Warned %s about their login failure." % user.name)
                     self.warned_auto_error.append(user_id)
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
