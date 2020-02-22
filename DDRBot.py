@@ -131,7 +131,7 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
 
     emb.title = "%s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.difficulty_name[0],
                                      first_mode, score_data.difficulty_number)
-    emb.description = "Played by %s %s\nView Screenshot `%sscreenshot %i)" % (score_player, v, cmd_prefix, score_data.id)
+    emb.description = "Played by %s %s\nView Screenshot `%sscreenshot %i`" % (score_player, v, cmd_prefix, score_data.id)
     emb.add_field(name="💯 Grade", value="%s %s" % (score_data.letter_grade, get_emoji_for_fc(score_data.full_combo)), inline=True)
     emb.add_field(name="📈 Score", value="%s" % score_data.money_score, inline=True)
     emb.add_field(name="<:mfc:472191264796966926> EXScore", value="%s" % score_data.ex_score, inline=True)
