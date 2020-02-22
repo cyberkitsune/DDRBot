@@ -93,7 +93,7 @@ def generate_embed(score_data, score_player):
     return emb
 
 
-def generate_embed_from_db(score_data, score_player):
+def generate_embed_from_db(score_data, score_player, verified=False):
     """
     :type score_data: Score
     """
@@ -102,9 +102,14 @@ def generate_embed_from_db(score_data, score_player):
         first_mode = 'D'
     else:
         first_mode = 'S'
+    if verified:
+        v = '<:verified:680629672735670352>'
+    else:
+        v = ''
+
     emb.title = "%s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.difficulty_name[0],
                                      first_mode, score_data.difficulty_number)
-    emb.description = "Played by %s" % score_player
+    emb.description = "Played by %s %s" % (score_player, v)
     emb.add_field(name="💯 Grade", value="%s %s" % (score_data.letter_grade, get_emoji_for_fc(score_data.full_combo)), inline=True)
     emb.add_field(name="📈 Score", value="%s" % score_data.money_score, inline=True)
     emb.add_field(name="<:mfc:472191264796966926> EXScore", value="%s" % score_data.ex_score, inline=True)
@@ -600,7 +605,7 @@ class DDRBotClient(discord.Client):
                 name = ''
                 for score in query:
                     name = score.user.display_name
-                    score_embs.append(generate_embed_from_db(score, name))
+                    score_embs.append(generate_embed_from_db(score, name, True))
                 await message.channel.send("Top %i scores for %s:" % (len(score_embs), u.display_name))
                 for emb in score_embs:
                     await message.channel.send(embed=emb)
@@ -720,7 +725,7 @@ class DDRBotClient(discord.Client):
         new_score = await self.new_scores.get()
         s = Score.get_or_none(id=new_score)
         if s is not None:
-            emb = generate_embed_from_db(s, s.user.display_name)
+            emb = generate_embed_from_db(s, s.user.display_name, True)
             for channel_id in self.authorized_channels['feed']:
                 channel = self.get_channel(int(channel_id))
                 if channel is not None:
