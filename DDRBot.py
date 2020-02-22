@@ -715,7 +715,7 @@ class DDRBotClient(discord.Client):
             self.authorized_channels['feed'] = []
         if len(self.authorized_channels['feed']) == 0:
             await asyncio.sleep(60)
-            self.loop.create_task(self.monitor_task())
+            self.loop.create_task(self.feed_task())
             return
         new_score = await self.new_scores.get()
         s = Score.get_or_none(id=new_score)
@@ -726,7 +726,7 @@ class DDRBotClient(discord.Client):
                 await channel.send(embed=emb)
 
         await asyncio.sleep(1)
-        self.loop.create_task(self.monitor_task())
+        self.loop.create_task(self.feed_task())
 
     async def auto_task(self):
         if len(self.add_autos) > 0:
