@@ -8,14 +8,12 @@ headers = {'User-Agent': user_agent}
 
 
 class EALink(object):
-    session = None
-    token = None
-    logged_in = False
-    cookies = None
 
     def __init__(self, token=None, cookies=None):
         self.token = token
         self.cookies = cookies
+        self.logged_in = False
+        self.session = None
 
     def login(self, username=None, password=None, otp=None):
         if self.session is not None:
