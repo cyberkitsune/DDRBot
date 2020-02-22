@@ -809,7 +809,9 @@ class DDRBotClient(discord.Client):
                         if 'dance' in photo['game_name'].lower():
                             await self.db_add_queue.put(
                                 (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date'])))
-                    if len(screenshot_files) > 10:
+                    if len(screenshot_files) == 0:
+                        pass
+                    elif len(screenshot_files) > 10:
                         screenshot_files = divide_chunks(screenshot_files, 10)
                         for fileset in screenshot_files:
                             await channel.send(files=fileset)
