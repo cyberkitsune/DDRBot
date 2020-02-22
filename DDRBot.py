@@ -4,7 +4,7 @@ import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
-from py573jp.Exceptions import EALinkException
+from py573jp.Exceptions import EALinkException, EALoginException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
@@ -749,6 +749,17 @@ class DDRBotClient(discord.Client):
             try:
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
                 photos = eal.get_screenshot_list()
+            except EALoginException as ex:
+                if user_id not in self.warned_auto_error:
+                    user = self.get_user(user_id)
+                    if user is not None:
+                        dmc = user.dm_channel
+                        if dmc is None:
+                            dmc = await user.create_dm()
+                        await dmc.send("Hey! You have `%sauto` on but I can't seem to log into your account anymore!\n"
+                                       "Please run %slink again to reconnect your account, or do `%sauto off` to disable this feature." %
+                                       (self.command_prefix, self.command_prefix, self.command_prefix))
+                    self.warned_auto_error.append(user_id)
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
                     print("Exception fetching photos for %s\n%s" % (user_id, ex))
