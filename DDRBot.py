@@ -855,9 +855,9 @@ class DDRBotClient(discord.Client):
                 scale_factor = 1
             ss = DDRScreenshot(img, size_multiplier=scale_factor)
             sd = DDRParsedData(ss)
-            print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s" %
+            print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
                   (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
-                   sd.play_ex_score))
+                   sd.play_ex_score, sd.date_stamp))
             if '*' in sd.play_ex_score.value:
                 exscore_int = int(sd.play_ex_score.value.split('*')[0])
             else:
