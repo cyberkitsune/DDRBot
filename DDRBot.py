@@ -146,6 +146,9 @@ class DDRBotClient(discord.Client):
     db_add_queue = queues.Queue()
     db_task_started = False
 
+    feed_task_created = False
+    new_scores = queues.Queue()
+
     def __init__(self, session_id):
         self.generic_eamuse_session = session_id
         self.command_handlers['help'] = self.help_command
@@ -163,6 +166,7 @@ class DDRBotClient(discord.Client):
         if os.path.exists("DDR_GENIE_ON"):
             self.command_handlers['genie'] = self.genie_command
             self.command_handlers['top'] = self.top_scores
+            self.command_handlers['setfeed'] = self.feed_authorize
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         self.deep_ai = None
@@ -197,6 +201,10 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.db_task())
             self.db_task_started = True
             print("Created DB task")
+        if not self.feed_task_created:
+            self.loop.create_task(self.feed_task())
+            self.feed_task_created = True
+            print("Created Feed task")
         if os.path.exists("deepai_key.txt"):
             print("DeepAI Key Exists. Enabling AI upscaling.")
             with open("deepai_key.txt", 'r') as f:
@@ -372,6 +380,32 @@ class DDRBotClient(discord.Client):
         else:
             await message.channel.send("Authorized this channel to use memes!")
             self.authorized_channels['memes'].append(str(message.channel.id))
+
+        save_json("channels.json", self.authorized_channels)
+
+    async def feed_authorize(self, message):
+        if not isinstance(message.channel, discord.TextChannel):
+            await message.channel.send("Sorry, you can't run this in a DM.")
+            return
+
+        can_auth = message.author.id == message.channel.guild.owner_id
+        if not can_auth:
+            can_auth = str(message.author.id) in self.admin_users
+
+        if not can_auth:
+            await message.channel.send("Sorry, only bot admins or guild owners can authorize feed channels.")
+            return
+
+        if 'feed' not in self.authorized_channels:
+            self.authorized_channels['feed'] = []
+
+        if str(message.channel.id) in self.authorized_channels['feed']:
+            await message.channel.send(
+                "This channel is already a score feed.\nRemoving.")
+            self.authorized_channels['feed'].remove(str(message.channel.id))
+        else:
+            await message.channel.send("Designated channel as score feed!")
+            self.authorized_channels['feed'].append(str(message.channel.id))
 
         save_json("channels.json", self.authorized_channels)
 
@@ -676,6 +710,24 @@ class DDRBotClient(discord.Client):
         await asyncio.sleep(60)
         self.loop.create_task(self.monitor_task())
 
+    async def feed_task(self):
+        if 'feed' not in self.authorized_channels:
+            self.authorized_channels['feed'] = []
+        if len(self.authorized_channels['feed']) == 0:
+            await asyncio.sleep(60)
+            self.loop.create_task(self.monitor_task())
+            return
+        new_score = await self.new_scores.get()
+        s = Score.get_or_none(id=new_score)
+        if s is not None:
+            emb = generate_embed_from_db(s, s.user.display_name)
+            for channel_id in self.authorized_channels['feed']:
+                channel = self.get_channel(channel_id)
+                await channel.send(embed=emb)
+
+        await asyncio.sleep(1)
+        self.loop.create_task(self.monitor_task())
+
     async def auto_task(self):
         if len(self.add_autos) > 0:
             for user_id in self.add_autos:
@@ -799,6 +851,7 @@ class DDRBotClient(discord.Client):
                              recorded_time=sc_time)
 
             s.save()
+            await self.new_scores.put(s.id)
 
             await asyncio.sleep(2)  # Free up time for catch up
 
