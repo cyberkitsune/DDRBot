@@ -10,7 +10,7 @@ from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
-    from DDRScoreDB import db, User, Score
+    from DDRScoreDB import db, User, Score, DBTaskWorkItem
     from DDRGenie.DDRDataTypes import DDRParsedData, DDRScreenshot
     db.connect()
 
@@ -710,7 +710,7 @@ class DDRBotClient(discord.Client):
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
             if 'dance' in photo['game_name'].lower():
-                await self.db_add_queue.put((message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
+                await self.db_add_queue.put(DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -885,7 +885,7 @@ class DDRBotClient(discord.Client):
                                            '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
                         if 'dance' in photo['game_name'].lower():
                             await self.db_add_queue.put(
-                                (user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
+                                DBTaskWorkItem(user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
                     if len(screenshot_files) == 0:
                         pass
                     elif len(screenshot_files) > 10:
@@ -903,22 +903,25 @@ class DDRBotClient(discord.Client):
         db.create_tables([User, Score])
         while not self.db_add_queue.empty():
             item = await self.db_add_queue.get()
+            if not isinstance(item, DBTaskWorkItem):
+                print("[DBTask] Warning, non work-item in queue...")
+                continue
             # Check user
-            query = User.select().where(id == int(item[0]))
+            query = User.select().where(id == int(item.discord_id))
             if not query.exists():
-                User.get_or_create(id=int(item[0]), display_name=self.get_user(item[0]).name)
+                User.get_or_create(id=int(item.discord_id), display_name=self.get_user(item.discord_id).name)
 
-            u = User.get_by_id(int(item[0]))
+            u = User.get_by_id(int(item.discord_id))
 
-            query2 = Score.select().where(Score.user == u, Score.file_name == item[1])
+            query2 = Score.select().where(Score.user == u, Score.file_name == item.image_filename)
             if query2.exists():
-                print("Skipping duplicate score for %s (%s)..." % (u.display_name, item[1]))
+                print("Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
                 continue
 
             from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
             from PIL import Image
             import io
-            img = Image.open("./archive/%s/%s" % (item[0], item[1]))
+            img = Image.open("./archive/%s/%s" % (item.discord_id, item.image_filename))
             if self.deep_ai is not None:
                 img_arr = io.BytesIO()
                 img.save(img_arr, format='PNG')
@@ -945,12 +948,12 @@ class DDRBotClient(discord.Client):
             else:
                 exscore_int = int(sd.play_ex_score.value)
 
-            sc_time = datetime.datetime.utcfromtimestamp(int(item[2]))
+            sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
             s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
                          great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
-                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item[1],
+                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item.image_filename,
                              difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
                              recorded_time=sc_time)
 
@@ -976,7 +979,6 @@ class DDRBotClient(discord.Client):
                     return reqdata
                 else:
                     raise Exception("DeepAI didn't return an upscaled image...\nOutput: %s", js)
-
 
 
 if __name__ == "__main__":

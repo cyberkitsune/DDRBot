@@ -3,9 +3,11 @@ import datetime
 
 db = SqliteDatabase('score_db.db')
 
+
 class BaseModel(Model):
     class Meta:
         database = db
+
 
 class User(BaseModel):
     id = IntegerField(primary_key=True)
@@ -34,3 +36,13 @@ class Score(BaseModel):
     recorded_time = DateTimeField(default=datetime.datetime.utcnow)
     file_name = TextField()
     name_confidence = FloatField()
+
+
+class DBTaskWorkItem(object):
+
+    def __init__(self, discordID, imageFilename, imageTimestampStr, redo=False):
+        self.discord_id = discordID
+        self.image_filename = imageFilename
+        self.timestamp_string = imageTimestampStr
+        self.redo = redo
+
