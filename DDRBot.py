@@ -823,6 +823,7 @@ class DDRBotClient(discord.Client):
             last_time = int(self.auto_users[user_id])
             # Fetch screenshots
             eal = None
+            photos = []
             try:
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
                 photos = eal.get_screenshot_list()
@@ -845,7 +846,6 @@ class DDRBotClient(discord.Client):
                 if user_id not in self.warned_auto_error:
                     print("Exception fetching photos for %s\n%s" % (user_id, ex))
                     self.warned_auto_error.append(user_id)
-                photos = []
             else:
                 if user_id in self.warned_auto_error:
                     self.warned_auto_error.remove(user_id)
@@ -895,8 +895,6 @@ class DDRBotClient(discord.Client):
                     else:
                         await channel.send(files=screenshot_files)
                     save_json("auto.json", self.auto_users)
-
-
 
         await asyncio.sleep(60)
         self.loop.create_task(self.auto_task())
