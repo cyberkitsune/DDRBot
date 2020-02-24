@@ -478,6 +478,10 @@ class DDRBotClient(discord.Client):
         await message.channel.send(embed=generate_embed_from_db(s, s.user.display_name, True))
 
     async def requeue_db(self, message):
+        can_manual = str(message.author.id) in self.admin_users
+        if not can_manual:
+            await message.add_reaction('<:eming:572201816792629267>')
+            return
         args = message.content.split(' ')
         if len(args) < 2:
             await message.channel.send("This command will re-process an old score to be fixed after genie changes.\n"
