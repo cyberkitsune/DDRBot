@@ -493,7 +493,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("I can't find a score with ID `%s`" % args[1])
             return
 
-        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, s.recorded_time.to_timestamp(), redo=True))
+        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, s.recorded_time.timestamp(), redo=True))
 
         await message.channel.send("Added score ID `%i` to the reprocessing queue. (It may take a moment to reprocess)"
                                    % args[1])
