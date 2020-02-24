@@ -193,6 +193,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['setfeed'] = self.feed_authorize
             self.command_handlers['screenshot'] = self.fetch_screenshot
             self.command_handlers['show'] = self.show_score
+            self.command_handlers['redo'] = self.requeue_db
             #self.command_handlers['pb'] = self.list_pb
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
@@ -474,6 +475,28 @@ class DDRBotClient(discord.Client):
             return
 
         await message.channel.send(embed=generate_embed_from_db(s, s.user.display_name, True))
+
+    async def requeue_db(self, message):
+        args = message.content.split(' ')
+        if len(args) < 2:
+            await message.channel.send("This command will re-process an old score to be fixed after genie changes.\n"
+                                       "Usage: `%sredo [score_id]`" % self.command_prefix)
+            return
+
+        if not RepresentsInt(args[1]):
+            await message.channel.send("`%s` is not a number!\n"
+                                        "Usage: `%sredo [screenshot_id]`" % (args[1], self.command_prefix))
+            return
+
+        s: Score = Score.get_or_none(id=args[1])
+        if s is None:
+            await message.channel.send("I can't find a score with ID `%s`" % args[1])
+            return
+
+        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, s.recorded_time.to_timestamp(), redo=True))
+
+        await message.channel.send("Added score ID `%i` to the reprocessing queue. (It may take a moment to reprocess)"
+                                   % args[1])
 
     async def help_command(self, message):
         await message.channel.send("Hi! I'm KitsuneBot! I can do various actions related to Bemani games and e-amusement!\n"
@@ -913,10 +936,16 @@ class DDRBotClient(discord.Client):
 
             u = User.get_by_id(int(item.discord_id))
 
-            query2 = Score.select().where(Score.user == u, Score.file_name == item.image_filename)
-            if query2.exists():
-                print("Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
-                continue
+            id_override = None
+            test_score: Score = Score.get_or_none(Score.user == u, Score.file_name == item.image_filename)
+            if test_score is not None:
+                if not item.redo:
+                    print("Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
+                    continue
+                else:
+                    print("Redoing duplicate score for %s (%s)")
+                    id_override = test_score.id
+                    test_score.delete_instance()
 
             from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
             from PIL import Image
@@ -949,7 +978,22 @@ class DDRBotClient(discord.Client):
                 exscore_int = int(sd.play_ex_score.value)
 
             sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
-            s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
+            if id_override is not None:
+                s = Score.create(id=id_override, duser=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value,
+                                 letter_grade=sd.play_letter_grade,
+                                 full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value),
+                                 money_score=int(sd.play_money_score.value),
+                                 ex_score=exscore_int, marv_count=int(sd.score_marv_count.value),
+                                 perf_count=int(sd.score_perfect_count.value),
+                                 great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value),
+                                 OK_count=int(sd.score_OK_count.value),
+                                 miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value),
+                                 file_name=item.image_filename,
+                                 difficulty_number=int(sd.chart_difficulty_number.value),
+                                 difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
+                                 recorded_time=sc_time)
+            else:
+                s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
                          full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
                          ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
                          great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
