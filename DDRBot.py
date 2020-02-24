@@ -495,7 +495,7 @@ class DDRBotClient(discord.Client):
 
         await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, s.recorded_time.timestamp(), redo=True))
 
-        await message.channel.send("Added score ID `%i` to the reprocessing queue. (It may take a moment to reprocess)"
+        await message.channel.send("Added score ID `%s` to the reprocessing queue. (It may take a moment to reprocess)"
                                    % args[1])
 
     async def help_command(self, message):
@@ -943,7 +943,7 @@ class DDRBotClient(discord.Client):
                     print("Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
                     continue
                 else:
-                    print("Redoing duplicate score for %s (%s)")
+                    print("Redoing duplicate score for %s (%s)" % (u.display_name, item.image_filename))
                     id_override = test_score.id
                     test_score.delete_instance()
 
