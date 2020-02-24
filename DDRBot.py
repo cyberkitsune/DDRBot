@@ -979,7 +979,7 @@ class DDRBotClient(discord.Client):
 
             sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
             if id_override is not None:
-                s = Score.create(id=id_override, duser=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value,
+                s = Score.create(id=id_override, user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value,
                                  letter_grade=sd.play_letter_grade,
                                  full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value),
                                  money_score=int(sd.play_money_score.value),
