@@ -194,6 +194,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['screenshot'] = self.fetch_screenshot
             self.command_handlers['show'] = self.show_score
             self.command_handlers['redo'] = self.requeue_db
+            self.command_handlers['manual'] = self.manual_db
             #self.command_handlers['pb'] = self.list_pb
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
@@ -497,6 +498,32 @@ class DDRBotClient(discord.Client):
 
         await message.channel.send("Added score ID `%s` to the reprocessing queue. (It may take a moment to reprocess)"
                                    % args[1])
+
+    async def manual_db(self, message):
+        can_manual = str(message.author.id) in self.admin_users
+        if not can_manual:
+            await message.add_reaction('<:eming:572201816792629267>')
+            return
+
+        args = message.content.split(' ')
+        if len(args) < 4:
+            await message.channel.send("This command will manually process archived screenshots.\n"
+                                       "Usage: `%smanual [discordid] [filename] [timestamp]`" % self.command_prefix)
+            return
+
+        if not RepresentsInt(args[1]) or not RepresentsInt(args[3]):
+            await message.channel.send("Invalid args.\n"
+                                       "Usage: `%smanual [discordid] [filename] [timestamp]`" % self.command_prefix)
+            return
+
+        if not os.path.exists("archive/%s/%s" % (args[1], args[2])):
+            await message.channel.send("I couldn't find the screenshot at `archive/%s/%s`" % (args[1], args[2]))
+            return
+
+        await self.db_add_queue.put(DBTaskWorkItem(int(args[1]), args[2], int(args[3]), redo=False))
+
+        await message.channel.send("Added file `archive/%s/%s` to the processing queue."
+                                   % (args[1], args[2]))
 
     async def help_command(self, message):
         await message.channel.send("Hi! I'm KitsuneBot! I can do various actions related to Bemani games and e-amusement!\n"
