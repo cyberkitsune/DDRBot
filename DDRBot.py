@@ -275,7 +275,7 @@ class DDRBotClient(discord.Client):
                 except Exception:
                     command_name = ""
 
-                print("[CMD] %s#%s is running Got command %s" % (message.author.name, message.author.discriminator, command_name))
+                print("[CMD] %s#%s is running command %s" % (message.author.name, message.author.discriminator, command_name))
                 if command_name in self.command_handlers:
                     try:
                         await self.command_handlers[command_name](message)
