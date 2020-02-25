@@ -21,6 +21,18 @@ def divide_chunks(l, n):
         yield l[i:i + n]
 
 
+def harvest_cover(ss, pd):
+    """
+    Harvests an album cover if it's needed.
+    :type ss: DDRScreenshot
+    :type pd: DDRParsedData
+    """
+    if os.path.exists("covers/"):
+        if not os.path.exists("covers/%s.png" % pd.song_title.value.strip()):
+            print("Harvesting for %s" % pd.song_title)
+            ss.album_art.save("covers/%s.png" % pd.song_title.value.strip(), format='PNG')
+
+
 def save_json(filename, obj):
     try:
         with open(filename, 'w') as f:
@@ -689,6 +701,7 @@ class DDRBotClient(discord.Client):
                 scale_factor = 1
             ss = DDRScreenshot(img, size_multiplier=scale_factor)
             pd = DDRParsedData(ss)
+            harvest_cover(ss, pd)
             emb = generate_embed(pd, pd.dancer_name.value)
 
             await message.channel.send(embed=emb)
@@ -1000,6 +1013,7 @@ class DDRBotClient(discord.Client):
             except Exception as ex:
                 print("Can't parse image, skipping... Ex: %s" % ex)
                 continue
+            harvest_cover(ss, sd)
             print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
                   (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
                    sd.play_ex_score, sd.date_stamp))
