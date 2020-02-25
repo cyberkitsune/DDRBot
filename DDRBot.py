@@ -285,6 +285,7 @@ class DDRBotClient(discord.Client):
                         else:
                             await message.channel.send("Oops! uwu an error occured running that e-amusement command.\nError Reason:```\n%s```" % ex)
                     except YeetException as ex:
+                        print("[YEET] YEEEET")
                         await self.logout()
                         if db is not None:
                             db.close()
