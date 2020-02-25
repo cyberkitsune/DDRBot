@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp
+import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -110,7 +110,7 @@ def generate_embed(score_data, score_player):
     emb.add_field(name="<:emiok:572201794982248452> OK", value="%s" % score_data.score_OK_count, inline=True)
     emb.set_footer(text="DDR-Genie [β] - C: %i%%" % int(score_data.title_conf * 100))
     if os.path.exists("covers/%s.png" % score_data.song_title.value.strip()):
-        emb.set_thumbnail(url="https://assets.cyberkitsune.net/ddr_cover/%s.png" % score_data.song_title.value.strip())
+        emb.set_thumbnail(url="https://assets.cyberkitsune.net/ddr_cover/%s.png" % urllib.parse.quote(score_data.song_title.value.strip()))
     if score_data.date_time is not None:
         emb.timestamp = score_data.date_time
     return emb
@@ -155,7 +155,7 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
     emb.set_footer(text="DDR-Genie [β] - C: %i%% ID: %i" % (int(score_data.name_confidence * 100), score_data.id))
     emb.timestamp = score_data.recorded_time
     if os.path.exists("covers/%s.png" % score_data.song_title.strip()):
-        emb.set_thumbnail(url="https://assets.cyberkitsune.net/ddr_cover/%s.png" % score_data.song_title.strip())
+        emb.set_thumbnail(url="https://assets.cyberkitsune.net/ddr_cover/%s.png" % urllib.parse.quote(score_data.song_title.strip()))
     return emb
 
 
