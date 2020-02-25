@@ -764,7 +764,7 @@ class DDRBotClient(discord.Client):
 
         sorted_t5 = sorted(users_cum_scores, key=lambda x: x[1], reverse=True)[:5]
         emb = discord.Embed()
-        emb.title = "Top %i leaders in the KituneBot Leaderboard"
+        emb.title = "Top %i leaders in the KituneBot Leaderboard" % len(sorted_t5)
         emb.description = "Determined by their best plays for each recorded song, added together. (1 Score Per Song, PB only)"
         count = 0
         ranks = ['First 🏆', 'Second', 'Third', 'Fourth', 'Fifth']
