@@ -771,6 +771,7 @@ class DDRBotClient(discord.Client):
         for score in sorted_t5:
             emb.add_field(name=ranks[count], value="%s <:verified:680629672735670352> with a total of **%i** points (Over %i total submitted scores)" %
                                                    (score[0], score[1], score[2]), inline=False)
+            count += 1
 
         emb.set_footer(text='DDR Genie [β]')
         emb.timestamp = datetime.datetime.utcnow()
