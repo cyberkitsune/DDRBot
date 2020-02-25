@@ -109,6 +109,8 @@ def generate_embed(score_data, score_player):
     emb.add_field(name="<:eming:572201816792629267> Miss", value="%s (%0.2f%%)" % (score_data.score_miss_count, miss_percent), inline=True)
     emb.add_field(name="<:emiok:572201794982248452> OK", value="%s" % score_data.score_OK_count, inline=True)
     emb.set_footer(text="DDR-Genie [β] - C: %i%%" % int(score_data.title_conf * 100))
+    if os.path.exists("covers/%s.png" % score_data.song_title.value.strip()):
+        emb.set_thumbnail(url="https://assets.cyberkitsune.net/ddr_cover/%s.png" % score_data.song_title.value.strip())
     if score_data.date_time is not None:
         emb.timestamp = score_data.date_time
     return emb
@@ -152,6 +154,8 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
     emb.add_field(name="<:emiok:572201794982248452> OK", value="%s" % score_data.OK_count, inline=True)
     emb.set_footer(text="DDR-Genie [β] - C: %i%% ID: %i" % (int(score_data.name_confidence * 100), score_data.id))
     emb.timestamp = score_data.recorded_time
+    if os.path.exists("covers/%s.png" % score_data.song_title.strip()):
+        emb.set_thumbnail(url="https://assets.cyberkitsune.net/ddr_cover/%s.png" % score_data.song_title.strip())
     return emb
 
 
