@@ -767,9 +767,9 @@ class DDRBotClient(discord.Client):
         emb.title = "Top %i leaders in the KituneBot Leaderboard" % len(sorted_t5)
         emb.description = "Determined by their best plays for each recorded song, added together. (1 Score Per Song, PB only)"
         count = 0
-        ranks = ['First 🏆', 'Second', 'Third', 'Fourth', 'Fifth']
+        ranks = ['🏅 First', '🥈 Second', '🥉 Third', 'Fourth', 'Fifth']
         for score in sorted_t5:
-            emb.add_field(name=ranks[count], value="%s <:verified:680629672735670352> with a total of **%i** points (Over %i total submitted scores)" %
+            emb.add_field(name=ranks[count], value="%s <:verified:680629672735670352> - **%i** points Total (%i Total submitted scores)" %
                                                    (score[0], score[1], score[2]), inline=False)
             count += 1
 
