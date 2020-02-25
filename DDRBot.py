@@ -498,7 +498,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("I can't find a score with ID `%s`" % args[1])
             return
 
-        timestamp = s.file_name.split('-').strip('.jpg')
+        timestamp = s.file_name.split('-')[1].strip('.jpg')
 
         await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, timestamp, redo=True))
 
