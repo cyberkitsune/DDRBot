@@ -498,7 +498,9 @@ class DDRBotClient(discord.Client):
             await message.channel.send("I can't find a score with ID `%s`" % args[1])
             return
 
-        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, s.recorded_time.timestamp(), redo=True))
+        timestamp = s.file_name.split('-').strip('.jpg')
+
+        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, timestamp, redo=True))
 
         await message.channel.send("Added score ID `%s` to the reprocessing queue. (It may take a moment to reprocess)"
                                    % args[1])
@@ -1033,7 +1035,8 @@ class DDRBotClient(discord.Client):
                              recorded_time=sc_time)
 
             s.save()
-            await self.new_scores.put(s.id)
+            if not item.redo:
+                await self.new_scores.put(s.id)
 
             await asyncio.sleep(2)  # Free up time for catch up
 
