@@ -209,6 +209,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['show'] = self.show_score
             self.command_handlers['redo'] = self.requeue_db
             self.command_handlers['manual'] = self.manual_db
+            self.command_handlers['leaderboard'] = self.bot_leaderboard
             #self.command_handlers['pb'] = self.list_pb
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
@@ -741,6 +742,40 @@ class DDRBotClient(discord.Client):
                 await message.channel.send("Top %i scores for %s:" % (len(score_embs), u.display_name))
                 for emb in score_embs:
                     await message.channel.send(embed=emb)
+
+    async def bot_leaderboard(self, message):
+        users = User.select()
+        users_cum_scores = []
+        for u in users:
+            user_top_scores = {}
+            numscores = 0
+            for s in Score.select().where(user=u):
+                numscores += 1
+                if s.song_title not in user_top_scores:
+                    user_top_scores[s.song_title] = s.money_score
+                else:
+                    if user_top_scores[s.song_title] < s.money_score:
+                        user_top_scores[s.song_title] = s.money_score
+            total = 0
+            for song, score in user_top_scores.items():
+                total += score
+
+            users_cum_scores.append((u.display_name, total, numscores))
+
+        sorted_t5 = sorted(users_cum_scores, key=lambda x: x[1], reverse=True)[:5]
+        emb = discord.Embed()
+        emb.title = "Top %i leaders in the KituneBot Leaderboard"
+        emb.description = "Determined by their best plays for each recorded song, added together. (1 Score Per Song, PB only)"
+        count = 0
+        ranks = ['First 🏆', 'Second', 'Third', 'Fourth', 'Fifth']
+        for score in sorted_t5:
+            emb.add_field(name=ranks[count], value="%s <:verified:680629672735670352> with a total of **%i** points (Over %i total submitted scores)" %
+                                                   (score[0], score[1], score[2]), inline=False)
+
+        emb.set_footer(text='DDR Genie [β]')
+        emb.timestamp = datetime.datetime.utcnow()
+
+        await message.channel.send(embed=emb)
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
