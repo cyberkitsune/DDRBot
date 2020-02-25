@@ -749,7 +749,7 @@ class DDRBotClient(discord.Client):
         for u in users:
             user_top_scores = {}
             numscores = 0
-            for s in Score.select().where(user=u):
+            for s in Score.select().where(user == u):
                 numscores += 1
                 if s.song_title not in user_top_scores:
                     user_top_scores[s.song_title] = s.money_score
