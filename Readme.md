@@ -12,7 +12,7 @@ python DDRBot.py [bot token] [m573ssid]
 * Automatic E-Amusement Screenshot Delivery (auto mode)
 * DDR-ID Lookup
 * Player Name Lookup
-* (DDR-Genie)[https://github.com/cyberkitsune/DDRGenie] Support
+* [DDR-Genie](https://github.com/cyberkitsune/DDRGenie) Support
   * Screenshot Parsing
   * Screenshot DB
   * Score Feed
