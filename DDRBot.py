@@ -29,7 +29,7 @@ def harvest_cover(ss, pd):
     """
     if os.path.exists("covers/"):
         if not os.path.exists("covers/%s.png" % pd.song_title.value.strip()):
-            print("Harvesting for %s" % pd.song_title)
+            print("[CoverScrape] Harvesting for %s" % pd.song_title)
             ss.album_art.save("covers/%s.png" % pd.song_title.value.strip(), format='PNG')
 
 
@@ -38,9 +38,9 @@ def save_json(filename, obj):
         with open(filename, 'w') as f:
             json.dump(obj, f)
     except IOError as ex:
-        print("Exception occured saving %s!\n%s" % (filename, ex))
+        print("[JSON] Exception occured saving %s!\n%s" % (filename, ex))
     else:
-        print("Saved %s successfully." % filename)
+        print("[JSON} Saved %s successfully." % filename)
 
 
 def archive_screenshot(userid, filename, data):
@@ -57,10 +57,10 @@ def load_json(filename):
         with open(filename, 'r') as f:
             obj = json.load(f)
     except IOError as ex:
-        print("Exception occured loading %s!\n%s" % (filename, ex))
+        print("[JSON] Exception occured loading %s!\n%s" % (filename, ex))
         return None
     else:
-        print("Loaded %s successfully." % filename)
+        print("[JSON] Loaded %s successfully." % filename)
         return obj
 
 
@@ -217,40 +217,40 @@ class DDRBotClient(discord.Client):
         super().__init__()
 
     async def on_ready(self):
-        print("DDRBot is ready!")
+        print("[BOT] DDRBot is ready!")
         if os.path.exists("linked.json"):
-            print("Loading saved e-amusement accounts!")
+            print("[BOT] Loading saved e-amusement accounts!")
             self.linked_eamuse = load_json("linked.json")
         if os.path.exists("shown.json"):
-            print("Loading shown history!")
+            print("[BOT] Loading shown history!")
             self.shown_screenshots = load_json("shown.json")
         if os.path.exists("auto.json"):
-            print("Loading automode users!")
+            print("[BOT] Loading automode users!")
             self.auto_users = load_json("auto.json")
         if os.path.exists("channels.json"):
-            print("Loading authorized channels!")
+            print("[BOT] Loading authorized channels!")
             self.authorized_channels = load_json("channels.json")
         if os.path.exists("memes.json"):
-            print("Loaded memes!")
+            print("[BOT] Loaded memes!")
             self.memes = load_json("memes.json")
         if not self.task_created:
             self.loop.create_task(self.monitor_task())
             self.task_created = True
-            print("Created monitoring thread!")
+            print("[TASK] Created monitoring thread!")
         if not self.auto_task_created:
             self.loop.create_task(self.auto_task())
             self.auto_task_created = True
-            print("Created auto thread")
+            print("[TASK] Created auto thread")
         if not self.db_task_started:
             self.loop.create_task(self.db_task())
             self.db_task_started = True
-            print("Created DB task")
+            print("[TASK] Created DB task")
         if not self.feed_task_created:
             self.loop.create_task(self.feed_task())
             self.feed_task_created = True
-            print("Created Feed task")
+            print("[TASK] Created Feed task")
         if os.path.exists("deepai_key.txt"):
-            print("DeepAI Key Exists. Enabling AI upscaling.")
+            print("[DEEPAI] DeepAI Key Exists. Enabling AI upscaling.")
             with open("deepai_key.txt", 'r') as f:
                 self.deep_ai = f.read()
         else:
@@ -275,7 +275,7 @@ class DDRBotClient(discord.Client):
                 except Exception:
                     command_name = ""
 
-                print("Got command:", command_name)
+                print("[CMD] %s#%s is running Got command %s" % (message.author.name, message.author.discriminator, command_name))
                 if command_name in self.command_handlers:
                     try:
                         await self.command_handlers[command_name](message)
@@ -318,7 +318,7 @@ class DDRBotClient(discord.Client):
                     self.memes[name] = []
 
                 self.memes[name].append(' '.join(args[3:]))
-                print("Added new meme %s %s" % (name, ' '.join(args[3:])))
+                print("[MEME] Added new meme %s %s" % (name, ' '.join(args[3:])))
                 await message.channel.send("Added meme!")
                 save_json("memes.json", self.memes)
 
@@ -332,7 +332,7 @@ class DDRBotClient(discord.Client):
                     if msg in self.memes[name]:
                         self.memes[name].remove(msg)
                         await message.channel.send("Deleted %s from %s" % (msg, name))
-                        print("Deleted %s from %s" % (msg, name))
+                        print("[MEME] Deleted %s from %s" % (msg, name))
                         save_json("memes.json", self.memes)
                     else:
                         await message.channel.send("%s doesn't have message %s..." % (name, msg))
@@ -340,7 +340,7 @@ class DDRBotClient(discord.Client):
                     if name in self.memes:
                         del self.memes[name]
                         await message.channel.send("Deleted %s from memes." % (name))
-                        print("Deleted %s from memes." % (name))
+                        print("[MEME] Deleted %s from memes." % (name))
                         save_json("memes.json", self.memes)
             else:
                 await message.channel.send("Invalid Syntax! \nUsage:\n"
@@ -846,7 +846,7 @@ class DDRBotClient(discord.Client):
 
             if len(current_users) == 0:
                 if not self.warned_no_users:
-                    print("No current users returned...")
+                    print("[MONITOR] Warning: No current users returned...")
                     for channel_id in self.authorized_channels['reporting']:
                         channel = self.get_channel(channel_id)
                         if channel is not None:
@@ -874,7 +874,7 @@ class DDRBotClient(discord.Client):
             if len(new_users) > 0:
                 user_str = '\n'.join(['%s\t%i' % (x.name, x.ddrid) for x in new_users])
                 n_message = "Just logged out:\n```%s```" % user_str
-                print(n_message)
+                print("[MONITOR] %s" % n_message)
                 if len(self.authorized_channels['reporting']) > 0:
                     for channel_id in self.authorized_channels['reporting']:
                         channel = self.get_channel(channel_id)
@@ -944,14 +944,14 @@ class DDRBotClient(discord.Client):
                         await dmc.send("Hey! You have `%sauto` on but I can't seem to log into your account anymore!\n"
                                        "Please run %slink again to reconnect your account, or do `%sauto off` to disable this feature." %
                                        (self.command_prefix, self.command_prefix, self.command_prefix))
-                        print("Warned %s about their login failure." % user.name)
+                        print("[AUTO] Warned %s about their login failure." % user.name)
                         self.warned_auto_error.append(user_id)
                     else:
-                        print("I couldn't find user %s... Account deleted?" % user_id)
+                        print("[AUTO] I couldn't find user %s... Account deleted?" % user_id)
                         self.warned_auto_error.append(user_id)
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
-                    print("Exception fetching photos for %s\n%s" % (user_id, ex))
+                    print("[AUTO] Exception fetching photos for %s\n%s" % (user_id, ex))
                     self.warned_auto_error.append(user_id)
             else:
                 if user_id in self.warned_auto_error:
@@ -966,11 +966,11 @@ class DDRBotClient(discord.Client):
                         last_time = int(photo['last_play_date'])
 
                 if len(new_photos) > 0:
-                    print("Sending %i photos to %s" % (len(new_photos), user_id))
+                    print("[AUTO] Sending %i photos to %s" % (len(new_photos), user_id))
                     self.auto_users[user_id] = last_time
                     user = self.get_user(int(user_id))
                     if user is None:
-                        print("Auto warning: can't find user %s" % user_id)
+                        print("[AUTO] Warning: can't find user %s" % user_id)
                         continue
                     channel = user.dm_channel
                     if channel is None:
@@ -984,7 +984,7 @@ class DDRBotClient(discord.Client):
                         except EALinkException as ex:
                             await channel.send("Hey! I got some weird error trying to automatically pick up this screenshot `%s-%s.jpg`... Let CyberKitsune know!\nDetails:\n"
                                                "```%s```" % (photo['game_name'], photo['last_play_date'], ex.jscontext))
-                            print("Hey! I got some weird error trying to automatically pick up this screenshot %s-%s.jpg... Let CyberKitsune know!\nDetails:\n"
+                            print("[AUTO] Hey! I got some weird error trying to automatically pick up this screenshot %s-%s.jpg... Let CyberKitsune know!\nDetails:\n"
                                                "```%s```" % (photo['game_name'], photo['last_play_date'], ex.jscontext))
                             continue
                         screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
@@ -1011,7 +1011,7 @@ class DDRBotClient(discord.Client):
         while not self.db_add_queue.empty():
             item = await self.db_add_queue.get()
             if not isinstance(item, DBTaskWorkItem):
-                print("[DBTask] Warning, non work-item in queue...")
+                print("[DBTask] Warning: Non work-item in queue...")
                 continue
             # Check user
             query = User.select().where(id == int(item.discord_id))
@@ -1024,10 +1024,10 @@ class DDRBotClient(discord.Client):
             test_score: Score = Score.get_or_none(Score.user == u, Score.file_name == item.image_filename)
             if test_score is not None:
                 if not item.redo:
-                    print("Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
+                    print("[DBTask] Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
                     continue
                 else:
-                    print("Redoing duplicate score for %s (%s)" % (u.display_name, item.image_filename))
+                    print("[DBTask] Redoing duplicate score for %s (%s)" % (u.display_name, item.image_filename))
                     id_override = test_score.id
                     test_score.delete_instance()
 
@@ -1043,7 +1043,7 @@ class DDRBotClient(discord.Client):
                     img = Image.open(new_img)
                     scale_factor = 2
                 except Exception as ex:
-                    print("Can't upscale image. Defaulting to 1x. Err: %s" % ex)
+                    print("[DBTask] Can't upscale image. Defaulting to 1x. Err: %s" % ex)
                     scale_factor = 1
             else:
                 scale_factor = 1
@@ -1051,10 +1051,10 @@ class DDRBotClient(discord.Client):
                 ss = DDRScreenshot(img, size_multiplier=scale_factor)
                 sd = DDRParsedData(ss)
             except Exception as ex:
-                print("Can't parse image, skipping... Ex: %s" % ex)
+                print("[DBTask] Can't parse image, skipping... Ex: %s" % ex)
                 continue
             harvest_cover(ss, sd)
-            print("Inserting new score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
+            print("[DBTask] Inserting score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
                   (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
                    sd.play_ex_score, sd.date_stamp))
             if '*' in sd.play_ex_score.value:
