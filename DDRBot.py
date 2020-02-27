@@ -808,7 +808,7 @@ class DDRBotClient(discord.Client):
             dmc = user.dm_channel
             if dmc is None:
                 dmc = await user.create_dm()
-            f = discord.File(io.StringIO(final_csv), '%s-scores.csv' % message.author.name)
+            f = discord.File(io.StringIO(final_csv), '%s-scores_%s.csv' % (message.author.name, datetime.datetime.utcnow()))
             await dmc.send("Here's your recorded gene scores as of right now!", file=f)
 
         
