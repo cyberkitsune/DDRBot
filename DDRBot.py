@@ -787,12 +787,12 @@ class DDRBotClient(discord.Client):
                                        "Try running `scores` or `auto` with some screenshots to record them.")
             return 
         
-        score_csv = ["Track Title | Track Artist | Type | Grade | Score | EX Score | Combo | Marvelous | Perfect | "
+        score_csv = ["ID | Track Title | Track Artist | Type | Grade | Score | EX Score | Combo | Marvelous | Perfect | "
                      "Great | Good | Miss | OK | Time Played"]
 
         s: Score
         for s in Score.select().where(Score.user == u):
-            score_csv.append("%s|%s|%s|%s %s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s" % (s.song_title, s.song_artist,
+            score_csv.append("%s|%s|%s|%s|%s %s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s" % (s.id, s.song_title, s.song_artist,
                                                                                "Single" if not s.doubles_play
                                                                                else "Double", s.letter_grade, s.full_combo,
                                                                                s.money_score, s.ex_score, s.max_combo,
