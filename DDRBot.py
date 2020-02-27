@@ -210,6 +210,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['redo'] = self.requeue_db
             self.command_handlers['manual'] = self.manual_db
             self.command_handlers['leaderboard'] = self.bot_leaderboard
+            self.command_handlers['csv'] = self.csv_command
             #self.command_handlers['pb'] = self.list_pb
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
@@ -778,6 +779,41 @@ class DDRBotClient(discord.Client):
         emb.timestamp = datetime.datetime.utcnow()
 
         await message.channel.send(embed=emb)
+
+    async def csv_command(self, message):
+        u = User.get_or_none(id=int(message.author.id))
+        if u is None:
+            await message.channel.send("You don't have any scores saved! "
+                                       "Try running `scores` or `auto` with some screenshots to record them.")
+            return 
+        
+        score_csv = ["Track Title | Track Artist | Type | Grade | Score | EX Score | Combo | Marvelous | Perfect | "
+                     "Great | Good | Miss | OK | Time Played"]
+
+        s: Score
+        for s in Score.select().where(Score.user == u):
+            score_csv.append("%s|%s|%s|%s %s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s" % (s.song_title, s.song_artist,
+                                                                               "Single" if not s.doubles_play
+                                                                               else "Double", s.letter_grade, s.full_combo,
+                                                                               s.money_score, s.ex_score, s.max_combo,
+                                                                               s.marv_count, s.perf_count, s.great_count,
+                                                                               s.good_count, s.miss_count, s.OK_count,
+                                                                               s.recorded_time))
+        final_csv = '\r\n'.join(score_csv)
+        await message.channel.send("I've DMed you your score CSV file! Open it with excel or your other favorite spreadsheet"
+                                   "software. The delimiter is `|`.")
+
+        user = self.get_user(message.author.id)
+        if user is not None:
+            dmc = user.dm_channel
+            if dmc is None:
+                dmc = await user.create_dm()
+            f = discord.File(io.StringIO(final_csv), '%s-scores.csv' % message.author.name)
+            await dmc.send("Here's your recorded gene scores as of right now!", file=f)
+
+        
+        
+            
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
