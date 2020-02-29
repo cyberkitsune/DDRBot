@@ -40,7 +40,7 @@ def save_json(filename, obj):
     except IOError as ex:
         print("[JSON] Exception occured saving %s!\n%s" % (filename, ex))
     else:
-        print("[JSON} Saved %s successfully." % filename)
+        print("[JSON] Saved %s successfully." % filename)
 
 
 def archive_screenshot(userid, filename, data):
