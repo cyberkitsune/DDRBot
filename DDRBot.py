@@ -644,7 +644,14 @@ class DDRBotClient(discord.Client):
 
         if eal.logged_in:
             self.linked_eamuse[str(message.author.id)] = [eal.cookies[0], eal.cookies[1]]
-            await message.channel.send("Logged in!\nYour cookies (for debug):\n```aqbsess=%s aqblog=%s```" % eal.cookies)
+            await message.channel.send("Logged in! Your e-amsuement account is linked!\n"
+                                       "You can now use features of the bot that require e-amusement")
+            await message.channel.send("The bot will automatically DM you new screenshots you save to your e-amusement"
+                                       "account. To opt-out of this feature you can type `%sauto off`\nOtherwise, no "
+                                       "action is required" % self.command_prefix)
+            if str(message.author.id) not in self.auto_users:
+                self.add_autos.append(str(message.author.id))
+
             save_json("linked.json", self.linked_eamuse)
         else:
             await message.channel.send("Unable to log in!")
