@@ -750,8 +750,8 @@ class DDRBotClient(discord.Client):
                 scale_factor = 2
             else:
                 scale_factor = 1
-            ss = sst(img, size_multiplier=scale_factor)
-            pd = pdt(ss)
+            ss = await self.loop.run_in_executor(None, sst, img, scale_factor)
+            pd = await self.loop.run_in_executor(None, pdt, ss)
             if isinstance(pd, DDRParsedData):
                 harvest_cover(ss, pd)
                 emb = generate_embed(pd, pd.dancer_name.value)
