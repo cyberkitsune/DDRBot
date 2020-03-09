@@ -129,7 +129,7 @@ def generate_embed_iidx(score_data, score_player):
     emb.add_field(name="💯 DJ Level", value="%s" % score_data.play_dj_level, inline=True)
     emb.add_field(name="🎯 EXScore", value="%s" % score_data.play_ex_score, inline=True)
     emb.add_field(name="❌ Miss Count", value="%s" % score_data.play_miss_count, inline=True)
-    emb.add_field(name="🌈 R-Great", value="%s" % score_data.score_rainbow_count, inline=True)
+    emb.add_field(name="🌈 PGreat", value="%s" % score_data.score_rainbow_count, inline=True)
     emb.add_field(name="👍 Great", value="%s" % score_data.score_great_count, inline=True)
     emb.add_field(name="😐 Good", value="%s" % score_data.score_good_count, inline=True)
     emb.add_field(name="👎 Bad", value="%s" % score_data.score_bad_count, inline=True)
