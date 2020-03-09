@@ -755,10 +755,10 @@ class DDRBotClient(discord.Client):
             if isinstance(pd, DDRParsedData):
                 harvest_cover(ss, pd)
                 emb = generate_embed(pd, pd.dancer_name.value)
-
                 await message.channel.send(embed=emb)
             elif isinstance(pd, IIDXParsedData):
-                pass
+                emb = generate_embed_iidx(pd, pd.dj_name.value)
+                await message.channel.send(embed=emb)
             else:
                 raise Exception("Unsupported parsed data type. %s is not supported." % type(pd))
 
