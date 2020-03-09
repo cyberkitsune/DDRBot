@@ -12,6 +12,7 @@ from asyncio import queues
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score, DBTaskWorkItem
     from DDRGenie.DDRDataTypes import DDRParsedData, DDRScreenshot
+    from DDRGenie.IIDXDataTypes import IIDXParsedData, IIDXScreenshot
     db.connect()
 
 
@@ -115,6 +116,31 @@ def generate_embed(score_data, score_player):
         emb.timestamp = score_data.date_time
     return emb
 
+def generate_embed_iidx(score_data, score_player):
+    """
+    :type score_data: IIDXParsedData
+    """
+    emb = discord.Embed()
+
+    emb.title = "%s by %s [%s %s]" % (score_data.song_title, score_data.song_artist, score_data.chart_play_mode,
+                                      score_data.chart_difficulty)
+    emb.description = "Played by %s" % score_player
+    emb.add_field(name="🎉 Clear Type", value="%s" % score_data.play_clear_type, inline=True)
+    emb.add_field(name="💯 DJ Level", value="%s" % score_data.play_dj_level, inline=True)
+    emb.add_field(name="🎯 EXScore", value="%s" % score_data.play_ex_score, inline=True)
+    emb.add_field(name="❌ Miss Count", value="%s" % score_data.play_miss_count, inline=True)
+    emb.add_field(name="🌈 R-Great", value="%s" % score_data.score_rainbow_count, inline=True)
+    emb.add_field(name="👍 Great", value="%s" % score_data.score_great_count, inline=True)
+    emb.add_field(name="😐 Good", value="%s" % score_data.score_good_count, inline=True)
+    emb.add_field(name="👎 Bad", value="%s" % score_data.score_bad_count, inline=True)
+    emb.add_field(name="🆖 Poor", value="%s" % score_data.score_poor_count, inline=True)
+    emb.add_field(name="⛓ Combo Break", value="%s" % score_data.score_combo_break, inline=True)
+    emb.add_field(name="🥕 Fast", value="%s" % score_data.score_fast_count, inline=True)
+    emb.add_field(name="🐢 Slow", value="%s" % score_data.score_slow_count, inline=True)
+    emb.set_footer(text="IIDX-Genie [α]")
+    if score_data.date_time is not None:
+        emb.timestamp = score_data.date_time
+    return emb
 
 def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix='k!'):
     """
@@ -689,6 +715,7 @@ class DDRBotClient(discord.Client):
             return
 
         from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
+        from DDRGenie.IIDXDataTypes import IIDXScreenshot, IIDXParsedData
         from PIL import Image
         import io
         args = message.content.split(' ')
@@ -705,7 +732,16 @@ class DDRBotClient(discord.Client):
                     else:
                         data = None
             img = Image.open(io.BytesIO(data))
-
+            if img.width == 400:
+                sst = IIDXScreenshot
+                pdt = IIDXParsedData
+            elif img.width == 600:
+                sst = DDRScreenshot
+                pdt = DDRParsedData
+            else:
+                await message.channel.send("The linked image doesn't appear to be either a IIDX or DDR e-amusement screenshot.\n"
+                                           "Please note: This only works with e-amusement screenshots, not photos, or screenshots of screenshots.")
+                return
             if self.deep_ai is not None:
                 img_arr = io.BytesIO()
                 img.save(img_arr, format='PNG')
@@ -714,12 +750,17 @@ class DDRBotClient(discord.Client):
                 scale_factor = 2
             else:
                 scale_factor = 1
-            ss = DDRScreenshot(img, size_multiplier=scale_factor)
-            pd = DDRParsedData(ss)
-            harvest_cover(ss, pd)
-            emb = generate_embed(pd, pd.dancer_name.value)
+            ss = sst(img, size_multiplier=scale_factor)
+            pd = pdt(ss)
+            if isinstance(pd, DDRParsedData):
+                harvest_cover(ss, pd)
+                emb = generate_embed(pd, pd.dancer_name.value)
 
-            await message.channel.send(embed=emb)
+                await message.channel.send(embed=emb)
+            elif isinstance(pd, IIDXParsedData):
+                pass
+            else:
+                raise Exception("Unsupported parsed data type. %s is not supported." % type(pd))
 
     async def top_scores(self, message):
         args = message.content.split(' ')
