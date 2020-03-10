@@ -157,7 +157,7 @@ def generate_embed_iidx_db(score_data, score_player, verified=False, cmd_prefix=
 
     emb.title = "%s by %s [%s %s]" % (score_data.song_title, score_data.song_artist,
                                       'DP' if score_data.double_play else 'SP', score_data.difficulty)
-    emb.description = "Played by %s %s\nView Screenshot `%sscreenshot %i`" % (score_player, v, cmd_prefix, score_data.id)
+    emb.description = "Played by %s %s\nView Screenshot `%sscreenshot iidx%i`" % (score_player, v, cmd_prefix, score_data.id)
     emb.add_field(name="🎉 Clear Type", value="%s" % score_data.clear_type, inline=True)
     emb.add_field(name="💯 DJ Level", value="%s" % score_data.dj_grade, inline=True)
     emb.add_field(name="🎯 EXScore", value="%s" % score_data.ex_score, inline=True)
@@ -524,12 +524,17 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Usage: `%sscreenshot [screenshot_id]`" % self.command_prefix)
             return
 
+        st = Score
+        if 'iidx' in args[1]:
+            st = IIDXScore
+            args[1] = args[1].strip('iidx')
+
         if not RepresentsInt(args[1]):
             await message.channel.send("`%s` is not a number!\n"
                                         "Usage: `%sscreenshot [screenshot_id]`" % (args[1], self.command_prefix))
             return
 
-        s = Score.get_or_none(id=args[1])
+        s = st.get_or_none(id=args[1])
         if s is None:
             await message.channel.send("I can't find a screenshot with ID `%s`" % args[1])
             return
@@ -545,12 +550,17 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Usage: `%sscore [score_id]`" % self.command_prefix)
             return
 
+        st = Score
+        if 'iidx' in args[1]:
+            st = IIDXScore
+            args[1] = args[1].strip('iidx')
+
         if not RepresentsInt(args[1]):
             await message.channel.send("`%s` is not a number!\n"
                                         "Usage: `%sscore [screenshot_id]`" % (args[1], self.command_prefix))
             return
 
-        s = Score.get_or_none(id=args[1])
+        s = st.get_or_none(id=args[1])
         if s is None:
             await message.channel.send("I can't find a score with ID `%s`" % args[1])
             return
@@ -568,6 +578,11 @@ class DDRBotClient(discord.Client):
                                        "Usage: `%sredo [score_id]`" % self.command_prefix)
             return
 
+        game = 'ddr'
+        if 'iidx' in args[1]:
+            game = 'iidx'
+            args[1] = args[1].strip('iidx')
+
         if not RepresentsInt(args[1]):
             await message.channel.send("`%s` is not a number!\n"
                                         "Usage: `%sredo [screenshot_id]`" % (args[1], self.command_prefix))
@@ -580,7 +595,7 @@ class DDRBotClient(discord.Client):
 
         timestamp = s.file_name.split('-')[1].strip('.jpg')
 
-        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, timestamp, redo=True))
+        await self.db_add_queue.put(DBTaskWorkItem(s.user.id, s.file_name, timestamp, redo=True, game=game))
 
         await message.channel.send("Added score ID `%s` to the reprocessing queue. (It may take a moment to reprocess)"
                                    % args[1])
@@ -606,7 +621,11 @@ class DDRBotClient(discord.Client):
             await message.channel.send("I couldn't find the screenshot at `archive/%s/%s`" % (args[1], args[2]))
             return
 
-        await self.db_add_queue.put(DBTaskWorkItem(int(args[1]), args[2], int(args[3]), redo=False))
+        game = 'ddr'
+        if 'iidx' in args:
+            game = 'iidx'
+
+        await self.db_add_queue.put(DBTaskWorkItem(int(args[1]), args[2], int(args[3]), redo=False, game=game))
 
         await message.channel.send("Added file `archive/%s/%s` to the processing queue."
                                    % (args[1], args[2]))
@@ -897,10 +916,6 @@ class DDRBotClient(discord.Client):
                 dmc = await user.create_dm()
             f = discord.File(io.StringIO(final_csv), '%s-scores_%s.csv' % (message.author.name, datetime.datetime.utcnow()))
             await dmc.send("Here's your recorded gene scores as of right now!", file=f)
-
-        
-        
-            
 
     async def show_screenshots(self, message):
         if str(message.author.id) not in self.linked_eamuse:
