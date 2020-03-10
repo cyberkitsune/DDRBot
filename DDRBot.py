@@ -980,7 +980,15 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.feed_task())
             return
         new_score = await self.new_scores.get()
-        s = Score.get_or_none(id=new_score)
+        if new_score[1] == 'ddr':
+            st = Score
+        elif new_score[1] == 'iidx':
+            st = IIDXScore
+        else:
+            await asyncio.sleep(1)
+            self.loop.create_task(self.feed_task())
+            return
+        s = st.get_or_none(id=new_score[0])
         if s is not None:
             emb = generate_embed_from_db(s, s.user.display_name, True)
             for channel_id in self.authorized_channels['feed']:
