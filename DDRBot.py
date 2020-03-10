@@ -942,6 +942,10 @@ class DDRBotClient(discord.Client):
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
             if 'dance' in photo['game_name'].lower():
                 await self.db_add_queue.put(DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
+            if 'beatmania' in photo['game_name'].lower():
+                await self.db_add_queue.put(
+                    DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
+                                   photo['last_play_date'], game='iidx'))
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -1125,6 +1129,10 @@ class DDRBotClient(discord.Client):
                         if 'dance' in photo['game_name'].lower():
                             await self.db_add_queue.put(
                                 DBTaskWorkItem(user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
+                        if 'beatmania' in photo['game_name'].lower():
+                            await self.db_add_queue.put(
+                                DBTaskWorkItem(user.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
+                                               photo['last_play_date'], game='iidx'))
                     if len(screenshot_files) == 0:
                         pass
                     elif len(screenshot_files) > 10:
