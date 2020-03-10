@@ -10,7 +10,7 @@ from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
-    from DDRScoreDB import db, User, Score, DBTaskWorkItem
+    from DDRScoreDB import db, User, Score, IIDXScore, DBTaskWorkItem
     from DDRGenie.DDRDataTypes import DDRParsedData, DDRScreenshot
     from DDRGenie.IIDXDataTypes import IIDXParsedData, IIDXScreenshot
     db.connect()
@@ -1096,7 +1096,7 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.auto_task())
 
     async def db_task(self):
-        db.create_tables([User, Score])
+        db.create_tables([User, Score, IIDXScore])
         while not self.db_add_queue.empty():
             item = await self.db_add_queue.get()
             if not isinstance(item, DBTaskWorkItem):
@@ -1110,7 +1110,13 @@ class DDRBotClient(discord.Client):
             u = User.get_by_id(int(item.discord_id))
 
             id_override = None
-            test_score: Score = Score.get_or_none(Score.user == u, Score.file_name == item.image_filename)
+            if item.game == 'ddr':
+                st = Score
+            elif item.game == 'iidx':
+                st = IIDXScore
+            else:
+                continue
+            test_score: st = st.get_or_none(st.user == u, st.file_name == item.image_filename)
             if test_score is not None:
                 if not item.redo:
                     print("[DBTask] Skipping duplicate score for %s (%s)..." % (u.display_name, item.image_filename))
@@ -1121,8 +1127,18 @@ class DDRBotClient(discord.Client):
                     test_score.delete_instance()
 
             from DDRGenie.DDRDataTypes import DDRScreenshot, DDRParsedData
+            from DDRGenie.IIDXDataTypes import IIDXScreenshot, IIDXParsedData
             from PIL import Image
             import io
+            if item.game == 'ddr':
+                sst = DDRScreenshot
+                pdt = DDRParsedData
+            elif item.game == 'iidx':
+                sst = IIDXScreenshot
+                pdt = IIDXParsedData
+            else:
+                print("[DBTask] Unhandled game type %s, skipping..." % item.game)
+                continue
             img = Image.open("./archive/%s/%s" % (item.discord_id, item.image_filename))
             if self.deep_ai is not None:
                 img_arr = io.BytesIO()
@@ -1137,47 +1153,80 @@ class DDRBotClient(discord.Client):
             else:
                 scale_factor = 1
             try:
-                ss = DDRScreenshot(img, size_multiplier=scale_factor)
-                sd = DDRParsedData(ss)
+                ss = sst(img, size_multiplier=scale_factor)
+                sd = pdt(ss)
             except Exception as ex:
                 print("[DBTask] Can't parse image, skipping... Ex: %s" % ex)
                 continue
-            harvest_cover(ss, sd)
-            print("[DBTask] Inserting score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
-                  (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
-                   sd.play_ex_score, sd.date_stamp))
-            if '*' in sd.play_ex_score.value:
-                exscore_int = int(sd.play_ex_score.value.split('*')[0])
-            else:
-                exscore_int = int(sd.play_ex_score.value)
+            if isinstance(sd, DDRParsedData):
+                harvest_cover(ss, sd)
+                print("[DBTask] Inserting score for %s; SONG %s GRADE %s SCORE %s EX %s TSTAMP %s" %
+                      (u.display_name, sd.song_title, sd.play_letter_grade, sd.play_money_score,
+                       sd.play_ex_score, sd.date_stamp))
+                if '*' in sd.play_ex_score.value:
+                    exscore_int = int(sd.play_ex_score.value.split('*')[0])
+                else:
+                    exscore_int = int(sd.play_ex_score.value)
 
-            sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
-            if id_override is not None:
-                s = Score.create(id=id_override, user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value,
-                                 letter_grade=sd.play_letter_grade,
-                                 full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value),
-                                 money_score=int(sd.play_money_score.value),
-                                 ex_score=exscore_int, marv_count=int(sd.score_marv_count.value),
-                                 perf_count=int(sd.score_perfect_count.value),
-                                 great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value),
-                                 OK_count=int(sd.score_OK_count.value),
-                                 miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value),
-                                 file_name=item.image_filename,
-                                 difficulty_number=int(sd.chart_difficulty_number.value),
-                                 difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
+                sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
+                if id_override is not None:
+                    s = Score.create(id=id_override, user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value,
+                                     letter_grade=sd.play_letter_grade,
+                                     full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value),
+                                     money_score=int(sd.play_money_score.value),
+                                     ex_score=exscore_int, marv_count=int(sd.score_marv_count.value),
+                                     perf_count=int(sd.score_perfect_count.value),
+                                     great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value),
+                                     OK_count=int(sd.score_OK_count.value),
+                                     miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value),
+                                     file_name=item.image_filename,
+                                     difficulty_number=int(sd.chart_difficulty_number.value),
+                                     difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
+                                     recorded_time=sc_time)
+                else:
+                    s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
+                             full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
+                             ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
+                             great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
+                             miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item.image_filename,
+                                 difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
                                  recorded_time=sc_time)
+
+            elif isinstance(sd, IIDXParsedData):
+                sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
+                if id_override is not None:
+                    s = IIDXScore.create(id=id_override, user=u, song_title=sd.song_title.value,
+                                         song_artist=sd.song_artist.value, difficulty=sd.chart_difficulty.value,
+                                         clear_type=sd.play_clear_type.value, dj_grade=sd.play_dj_level.value,
+                                         double_play=('DP' in sd.chart_play_mode.value), ex_score=int(sd.play_ex_score.value),
+                                         p_great_count=int(sd.score_rainbow_count.value), great_count=int(sd.score_great_count.value),
+                                         good_count=int(sd.score_good_count.value), bad_count=int(sd.score_bad_count.value),
+                                         poor_count=int(sd.score_poor_count.value), combo_break=int(sd.score_combo_break.value),
+                                         miss_count=int(sd.play_miss_count.value), fast_count=int(sd.score_fast_count.value),
+                                         slow_count=int(sd.score_slow_count.value), overall_confidence=sd.overall_conf,
+                                         recorded_time=sc_time)
+                else:
+                    s = IIDXScore.create(user=u, song_title=sd.song_title.value,
+                                         song_artist=sd.song_artist.value, difficulty=sd.chart_difficulty.value,
+                                         clear_type=sd.play_clear_type.value, dj_grade=sd.play_dj_level.value,
+                                         double_play=('DP' in sd.chart_play_mode.value),
+                                         ex_score=int(sd.play_ex_score.value),
+                                         p_great_count=int(sd.score_rainbow_count.value),
+                                         great_count=int(sd.score_great_count.value),
+                                         good_count=int(sd.score_good_count.value),
+                                         bad_count=int(sd.score_bad_count.value),
+                                         poor_count=int(sd.score_poor_count.value),
+                                         combo_break=int(sd.score_combo_break.value),
+                                         miss_count=int(sd.play_miss_count.value),
+                                         fast_count=int(sd.score_fast_count.value),
+                                         slow_count=int(sd.score_slow_count.value), overall_confidence=sd.overall_conf,
+                                         recorded_time=sc_time, file_name=item.image_filename)
             else:
-                s = Score.create(user=u, song_title=sd.song_title.value, song_artist=sd.song_artist.value, letter_grade=sd.play_letter_grade,
-                         full_combo=sd.play_full_combo, doubles_play=('DOUBLE' in sd.chart_play_mode.value), money_score=int(sd.play_money_score.value),
-                         ex_score=exscore_int, marv_count=int(sd.score_marv_count.value), perf_count=int(sd.score_perfect_count.value),
-                         great_count=int(sd.score_great_count.value), good_count=int(sd.score_good_count.value), OK_count=int(sd.score_OK_count.value),
-                         miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item.image_filename,
-                             difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
-                             recorded_time=sc_time)
+                continue
 
             s.save()
             if not item.redo:
-                await self.new_scores.put(s.id)
+                await self.new_scores.put((s.id, item.game))
 
             await asyncio.sleep(2)  # Free up time for catch up
 

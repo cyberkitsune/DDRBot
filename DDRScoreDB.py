@@ -55,6 +55,8 @@ class IIDXScore(BaseModel):
     poor_count = IntegerField()
     combo_break = IntegerField()
     miss_count = IntegerField()
+    fast_count = IntegerField()
+    slow_count = IntegerField()
     recorded_time = DateTimeField(default=datetime.datetime.utcnow)
     file_name = TextField()
     overall_confidence = FloatField()
@@ -62,9 +64,10 @@ class IIDXScore(BaseModel):
 
 class DBTaskWorkItem(object):
 
-    def __init__(self, discordID, imageFilename, imageTimestampStr, redo=False):
+    def __init__(self, discordID, imageFilename, imageTimestampStr, redo=False, game='ddr'):
         self.discord_id = discordID
         self.image_filename = imageFilename
         self.timestamp_string = imageTimestampStr
+        self.game = game
         self.redo = redo
 
