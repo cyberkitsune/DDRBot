@@ -123,7 +123,7 @@ def generate_embed_iidx(score_data, score_player):
     """
     emb = discord.Embed()
 
-    emb.title = "%s by %s [%s %s]" % (score_data.song_title, score_data.song_artist, score_data.chart_play_mode,
+    emb.title = "<:iidx:540794989316145162> %s by %s [%s %s]" % (score_data.song_title, score_data.song_artist, score_data.chart_play_mode,
                                       score_data.chart_difficulty)
     emb.description = "Played by %s" % score_player
     emb.add_field(name="🎉 Clear Type", value="%s" % score_data.play_clear_type, inline=True)
@@ -155,7 +155,7 @@ def generate_embed_iidx_db(score_data, score_player, verified=False, cmd_prefix=
 
     emb = discord.Embed()
 
-    emb.title = "%s by %s [%s %s]" % (score_data.song_title, score_data.song_artist,
+    emb.title = "<:iidx:540794989316145162> %s by %s [%s %s]" % (score_data.song_title, score_data.song_artist,
                                       'DP' if score_data.double_play else 'SP', score_data.difficulty)
     emb.description = "Played by %s %s\nView Screenshot `%sscreenshot iidx%i`" % (score_player, v, cmd_prefix, score_data.id)
     emb.add_field(name="🎉 Clear Type", value="%s" % score_data.clear_type, inline=True)
