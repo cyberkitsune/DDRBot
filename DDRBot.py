@@ -171,8 +171,8 @@ def generate_embed_iidx_db(score_data, score_player, verified=False, cmd_prefix=
     emb.add_field(name="🥕 Fast", value="%s" % score_data.fast_count, inline=True)
     emb.add_field(name="🐢 Slow", value="%s" % score_data.slow_count, inline=True)
     emb.set_footer(text="IIDX-Genie [α] - C: %i%% ID: iidx%i" % (int(score_data.overall_confidence * 100), score_data.id))
-    if score_data.date_time is not None:
-        emb.timestamp = score_data.date_time
+    if score_data.recorded_time is not None:
+        emb.timestamp = score_data.recorded_time
     return emb
 
 
@@ -1264,6 +1264,8 @@ class DDRBotClient(discord.Client):
 
             elif isinstance(sd, IIDXParsedData):
                 sc_time = datetime.datetime.utcfromtimestamp(int(item.timestamp_string))
+                print("[DBTask] Inserting IIDX for %s; SONG %s GRADE %s EX %s TSTAMP %s" %
+                      (u.display_name, sd.song_title, sd.play_dj_level, sd.play_ex_score, sd.date_time))
                 try:
                     if id_override is not None:
                         s = IIDXScore.create(id=id_override, user=u, song_title=sd.song_title.value,
