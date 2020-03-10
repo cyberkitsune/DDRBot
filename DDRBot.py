@@ -96,7 +96,7 @@ def generate_embed(score_data, score_player):
     good_percent = (int(score_data.score_good_count.value) / total_notes) * 100
     miss_percent = (int(score_data.score_miss_count.value) / total_notes) * 100
 
-    emb.title = "%s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.chart_difficulty.value[0],
+    emb.title = "<:ddr_arrow:687073061039505454> %s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.chart_difficulty.value[0],
                                      first_mode, score_data.chart_difficulty_number.value)
     emb.description = "Played by %s" % score_player
     emb.add_field(name="💯 Grade", value="%s %s" % (score_data.play_letter_grade, get_emoji_for_fc(score_data.play_full_combo)), inline=True)
@@ -201,7 +201,7 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
     good_percent = (int(score_data.good_count) / total_notes) * 100
     miss_percent = (int(score_data.miss_count) / total_notes) * 100
 
-    emb.title = "%s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.difficulty_name[0],
+    emb.title = "<:ddr_arrow:687073061039505454> %s by %s (%s%sP %s)" % (score_data.song_title, score_data.song_artist, score_data.difficulty_name[0],
                                      first_mode, score_data.difficulty_number)
     emb.description = "Played by %s %s\nView Screenshot `%sscreenshot %i`" % (score_player, v, cmd_prefix, score_data.id)
     emb.add_field(name="💯 Grade", value="%s %s" % (score_data.letter_grade, get_emoji_for_fc(score_data.full_combo)), inline=True)
