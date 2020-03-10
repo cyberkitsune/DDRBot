@@ -138,7 +138,7 @@ def generate_embed_iidx(score_data, score_player):
     emb.add_field(name="⛓ Combo Break", value="%s" % score_data.score_combo_break, inline=True)
     emb.add_field(name="🥕 Fast", value="%s" % score_data.score_fast_count, inline=True)
     emb.add_field(name="🐢 Slow", value="%s" % score_data.score_slow_count, inline=True)
-    emb.set_footer(text="IIDX-Genie [α] - C: %i%%" % int(score_data.title_conf * 100))
+    emb.set_footer(text="IIDX-Genie [α] - C: %i%%" % int(score_data.overall_conf * 100))
     if score_data.date_time is not None:
         emb.timestamp = score_data.date_time
     return emb
