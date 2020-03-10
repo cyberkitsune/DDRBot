@@ -16,7 +16,7 @@ class User(BaseModel):
 
 class Score(BaseModel):
     id = IntegerField(primary_key=True)
-    user = ForeignKeyField(User, backref='scores')
+    user = ForeignKeyField(User, backref='score')
     song_title = TextField()
     song_artist = TextField()
     difficulty_number = IntegerField()
@@ -36,6 +36,28 @@ class Score(BaseModel):
     recorded_time = DateTimeField(default=datetime.datetime.utcnow)
     file_name = TextField()
     name_confidence = FloatField()
+
+
+class IIDXScore(BaseModel):
+    id = IntegerField(primary_key=True)
+    user = ForeignKeyField(User, backref='iidxscore')
+    song_title = TextField()
+    song_artist = TextField()
+    difficulty = TextField()
+    clear_type = TextField()
+    dj_grade = TextField()
+    double_play = BooleanField()
+    ex_score = IntegerField()
+    p_great_count = IntegerField()
+    great_count = IntegerField()
+    good_count = IntegerField()
+    bad_count = IntegerField()
+    poor_count = IntegerField()
+    combo_break = IntegerField()
+    miss_count = IntegerField()
+    recorded_time = DateTimeField(default=datetime.datetime.utcnow)
+    file_name = TextField()
+    overall_confidence = FloatField()
 
 
 class DBTaskWorkItem(object):
