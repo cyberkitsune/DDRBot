@@ -144,10 +144,44 @@ def generate_embed_iidx(score_data, score_player):
     return emb
 
 
+def generate_embed_iidx_db(score_data, score_player, verified=False, cmd_prefix='k!'):
+    """
+    :type score_data: IIDXScore
+    """
+    if verified:
+        v = '<:verified:680629672735670352>'
+    else:
+        v = ''
+
+    emb = discord.Embed()
+
+    emb.title = "%s by %s [%s %s]" % (score_data.song_title, score_data.song_artist,
+                                      'DP' if score_data.double_play else 'SP', score_data.difficulty)
+    emb.description = "Played by %s %s\nView Screenshot `%sscreenshot %i`" % (score_player, v, cmd_prefix, score_data.id)
+    emb.add_field(name="🎉 Clear Type", value="%s" % score_data.clear_type, inline=True)
+    emb.add_field(name="💯 DJ Level", value="%s" % score_data.dj_grade, inline=True)
+    emb.add_field(name="🎯 EXScore", value="%s" % score_data.ex_score, inline=True)
+    emb.add_field(name="❌ Miss Count", value="%s" % score_data.miss_count, inline=True)
+    emb.add_field(name="🌈 PGreat", value="%s" % score_data.p_great_count, inline=True)
+    emb.add_field(name="👍 Great", value="%s" % score_data.great_count, inline=True)
+    emb.add_field(name="😐 Good", value="%s" % score_data.good_count, inline=True)
+    emb.add_field(name="👎 Bad", value="%s" % score_data.bad_count, inline=True)
+    emb.add_field(name="🆖 Poor", value="%s" % score_data.poor_count, inline=True)
+    emb.add_field(name="⛓ Combo Break", value="%s" % score_data.combo_break, inline=True)
+    emb.add_field(name="🥕 Fast", value="%s" % score_data.fast_count, inline=True)
+    emb.add_field(name="🐢 Slow", value="%s" % score_data.slow_count, inline=True)
+    emb.set_footer(text="IIDX-Genie [α] - C: %i%% ID: iidx%i" % (int(score_data.overall_confidence * 100), score_data.id))
+    if score_data.date_time is not None:
+        emb.timestamp = score_data.date_time
+    return emb
+
+
 def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix='k!'):
     """
     :type score_data: Score
     """
+    if isinstance(score_data, IIDXScore):
+        return generate_embed_iidx_db(score_data, score_player, verified, cmd_prefix)
     emb = discord.Embed()
     if score_data.doubles_play:
         first_mode = 'D'
@@ -189,6 +223,7 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
 
 class YeetException(Exception):
     pass
+
 
 class DDRBotClient(discord.Client):
     admin_users = ['109500246106587136']
