@@ -1084,7 +1084,7 @@ class DDRBotClient(discord.Client):
             photos = []
             try:
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
-                photos = await self.loop.run_in_executor(None, eal.get_screenshot_list, eal)
+                photos = await self.loop.run_in_executor(None, eal.get_screenshot_list)
             except EALoginException as ex:
                 if user_id not in self.warned_auto_error:
                     user = self.get_user(user_id)
