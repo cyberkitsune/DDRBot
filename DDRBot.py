@@ -983,7 +983,7 @@ class DDRBotClient(discord.Client):
             api = EAGate(arcade.api_key)
             ddr = DDRApi(api)
             try:
-                current_users = ddr.fetch_recent_players()
+                current_users = await self.loop.run_in_executor(None, ddr.fetch_recent_players)
             except Exception:
                 current_users = []
 
