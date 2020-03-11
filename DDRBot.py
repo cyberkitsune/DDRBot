@@ -1219,8 +1219,8 @@ class DDRBotClient(discord.Client):
             else:
                 scale_factor = 1
             try:
-                ss = sst(img, size_multiplier=scale_factor)
-                sd = pdt(ss)
+                ss = await self.loop.run_in_executor(None, sst, img, scale_factor)
+                sd = await self.loop.run_in_executor(None, pdt, ss)
             except Exception as ex:
                 print("[DBTask] Can't parse image, skipping... Ex: %s" % ex)
                 continue
