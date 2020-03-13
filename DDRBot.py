@@ -1280,7 +1280,7 @@ class DDRBotClient(discord.Client):
                                              poor_count=int(sd.score_poor_count.value), combo_break=int(sd.score_combo_break.value),
                                              miss_count=int(sd.play_miss_count.value), fast_count=int(sd.score_fast_count.value),
                                              slow_count=int(sd.score_slow_count.value), overall_confidence=sd.overall_conf,
-                                             recorded_time=sc_time)
+                                             recorded_time=sc_time, file_name=item.image_filename)
                     else:
                         s = IIDXScore.create(user=u, song_title=sd.song_title.value,
                                              song_artist=sd.song_artist.value, difficulty=sd.chart_difficulty.value,
