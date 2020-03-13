@@ -582,13 +582,16 @@ class DDRBotClient(discord.Client):
         if 'iidx' in args[1]:
             game = 'iidx'
             args[1] = args[1].strip('iidx')
+            st = IIDXScore
+        else:
+            st = Score
 
         if not RepresentsInt(args[1]):
             await message.channel.send("`%s` is not a number!\n"
                                         "Usage: `%sredo [screenshot_id]`" % (args[1], self.command_prefix))
             return
 
-        s: Score = Score.get_or_none(id=args[1])
+        s = st.get_or_none(id=args[1])
         if s is None:
             await message.channel.send("I can't find a score with ID `%s`" % args[1])
             return
