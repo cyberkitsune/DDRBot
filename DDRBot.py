@@ -1261,8 +1261,8 @@ class DDRBotClient(discord.Client):
                                  miss_count=int(sd.score_miss_count.value), max_combo=int(sd.play_max_combo.value), file_name=item.image_filename,
                                      difficulty_number=int(sd.chart_difficulty_number.value), difficulty_name=sd.chart_difficulty.value, name_confidence=sd.title_conf,
                                      recorded_time=sc_time)
-                except ValueError:
-                    print("[DBTASK] ValueError doing last insert.")
+                except ValueError as ex:
+                    print("[DBTASK] ValueError doing last insert. E: %s" % ex)
                     continue
 
             elif isinstance(sd, IIDXParsedData):
@@ -1297,8 +1297,8 @@ class DDRBotClient(discord.Client):
                                              fast_count=int(sd.score_fast_count.value),
                                              slow_count=int(sd.score_slow_count.value), overall_confidence=sd.overall_conf,
                                              recorded_time=sc_time, file_name=item.image_filename)
-                except ValueError:
-                    print("[DBTASK] ValueError doing last insert.")
+                except ValueError as ex:
+                    print("[DBTASK] ValueError doing last insert. E: %s" % ex)
                     continue
             else:
                 continue
