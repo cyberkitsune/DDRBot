@@ -1172,11 +1172,10 @@ class DDRBotClient(discord.Client):
                 print("[DBTask] Warning: Non work-item in queue...")
                 continue
             # Check user
-            query = User.select().where(id == int(item.discord_id))
-            if not query.exists():
-                User.get_or_create(id=int(item.discord_id), display_name=self.get_user(item.discord_id).name)
 
-            u = User.get_by_id(int(item.discord_id))
+            u = User.get_or_none(User.id == int(item.discord_id))
+            if u is None:
+                u = User.create(id=int(item.discord_id), display_name=self.get_user(item.discord_id).name)
 
             id_override = None
             if item.game == 'ddr':
