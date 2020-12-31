@@ -3,7 +3,7 @@ import requests, json
 from .Exceptions import EALinkException, EALoginException, EAMaintenanceException
 
 base_url = "https://aqb.s.konaminet.jp/aqb/"
-user_agent = "jp.konami.eam.link (Pixel2; Android 9.0; in-app; 20; app-version; 3.5.0)"
+user_agent = "jp.konami.eam.link (Pixel2; Android 9.0; in-app; 20; app-version; 3.5.4)"
 headers = {'User-Agent': user_agent}
 
 
