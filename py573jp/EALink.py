@@ -77,3 +77,36 @@ class EALink(object):
             raise Exception("Webdav file %s is not a JPEG! Got %s" % (file_path, r.headers['content-type']))
 
         return r.content
+
+    def facility_index(self):
+        if not self.logged_in:
+            self.login()
+
+        r = self.session.get("%s/blog/profile/facility/userFacilityIndex.php" % base_url, headers=headers)
+
+    def user_search(self, nickname):
+        if not self.logged_in:
+            self.login()
+
+        r = self.session.get("%s/blog/profile/search.php?nick_name=%s" % (base_url, nickname), headers=headers)
+
+        return r.content
+
+    def user_detail(self, uuid):
+        if not self.logged_in:
+            self.login()
+
+        r = self.session.get("%s/blog/profile/inDetail.php?uuid_to=%s" % (base_url, uuid), headers=headers)
+
+        return r.content
+
+    def get_api_in_session(self, api):
+        return self.get_in_session("%s/%s" % (base_url, api))
+
+    def get_in_session(self, url):
+        if not self.logged_in:
+            self.login()
+
+        r = self.session.get(url, headers=headers)
+
+        return r.content
