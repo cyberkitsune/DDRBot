@@ -6,6 +6,9 @@ base_url = "https://aqb-web.mo.konami.net/aqb/"
 user_agent = "jp.konami.eam.link (Pixel 3 XL; Android 9; in-app; 20; app-version; 3.5.4.193)"
 headers = {'User-Agent': user_agent}
 
+# TODO
+# * Move various json data structures into Python data classes
+
 
 class EALink(object):
 
@@ -116,7 +119,7 @@ class EALink(object):
 
         r = self.session.get("%s/blog/profile/inDetail.php?uuid_to=%s" % (base_url, uuid), headers=headers)
 
-        return json.loads(r.text)
+        return json.loads(r.text)['profile_info']
 
     def get_api_in_session(self, api):
         return self.get_in_session("%s/%s" % (base_url, api))

@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse
+import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse, pytz
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -260,6 +260,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['scores'] = self.show_screenshots
         self.command_handlers['auto'] = self.auto_command
         self.command_handlers['authorize'] = self.auth_channel
+        self.command_handlers['last'] = self.last_command
         self.command_handlers['yeet'] = self.yeet
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
@@ -767,6 +768,32 @@ class DDRBotClient(discord.Client):
                 await message.channel.send("You're not opted-in to automatic screenshots. Opt in by running `%sauto on`" % self.command_prefix)
         else:
             await message.channel.send("Invalid syntax.\nUsage:\n```%sauto (on | off)```" % self.command_prefix)
+
+    async def last_command(self, message):
+        if str(message.author.id) not in self.linked_eamuse:
+            await message.channel.send("You must link you e-amusement account to use this command! Use `%slink` to link your account." % self.command_prefix)
+            return
+
+        eal = EALink(cookies=(self.linked_eamuse[str(message.author.id)][0],
+                              self.linked_eamuse[str(message.author.id)][1]))
+
+        user_data = eal.user_detail(eal.get_my_uuid())
+        games = user_data['game_list']
+        if len(games) < 1:
+            await message.channel.send("You've never played any games on e-amusement! :(")
+            return
+
+        games = sorted(games, key=lambda x: x['game_name'])
+
+        # Build an embed
+        emb = discord.Embed()
+        emb.title = "%s's Last Played Games"
+        emb.description = "as of %s PST" % datetime.datetime.now(pytz.timezone('America/Los_Angeles'))
+        for game in games:
+            local_time = datetime.datetime.fromisoformat(game['lasttime'])
+            emb.add_field(name=game['game_name'], value="%s" % local_time.astimezone(pytz.timezone('America/Los_Angeles')), inline=False)
+        emb.set_footer(text="All times in PST.")
+        await message.channel.send(embed=emb)
 
     async def genie_command(self, message):
         if not os.path.exists("DDR_GENIE_ON"):
