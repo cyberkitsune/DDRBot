@@ -103,7 +103,12 @@ class EALink(object):
 
         r = self.session.get("%s/blog/profile/search.php?nick_name=%s" % (base_url, nickname), headers=headers)
 
-        return r.content
+        js = json.loads(r.text)
+
+        if not js['status']:
+            raise EALinkException("Unable to search for users!", jscontext=js)
+
+        return js['profile_list']
 
     def user_detail(self, uuid):
         if not self.logged_in:
