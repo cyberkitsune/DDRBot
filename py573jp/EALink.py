@@ -14,6 +14,7 @@ class EALink(object):
         self.cookies = cookies
         self.logged_in = False
         self.session = None
+        self.my_uuid = None
 
     def login(self, username=None, password=None, otp=None):
         if self.session is not None:
@@ -66,6 +67,18 @@ class EALink(object):
 
         return photos
 
+    def get_my_uuid(self):
+        if not self.logged_in:
+            self.login()
+
+        r = self.session.get("%s/user/checkSession.php" % base_url, headers=headers)
+
+        js = json.loads(r.text)
+        if js['status']:
+            return js['user_info']['uuid']
+        else:
+            raise EALinkException("Error checking session!", jscontext=js)
+
     def get_jpeg_data_for(self, file_path):
         if not self.logged_in:
             self.login()
@@ -98,7 +111,7 @@ class EALink(object):
 
         r = self.session.get("%s/blog/profile/inDetail.php?uuid_to=%s" % (base_url, uuid), headers=headers)
 
-        return r.content
+        return json.loads(r.text)
 
     def get_api_in_session(self, api):
         return self.get_in_session("%s/%s" % (base_url, api))
