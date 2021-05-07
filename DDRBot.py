@@ -790,7 +790,7 @@ class DDRBotClient(discord.Client):
         emb.title = "%s's Last Played Games"
         emb.description = "as of %s PST" % datetime.datetime.now(pytz.timezone('America/Los_Angeles'))
         for game in games:
-            local_time = datetime.datetime.fromisoformat(game['lasttime'])
+            local_time = datetime.datetime.strptime(game['lasttime'], "%Y-%m-%d %H:%M:%S%z")
             emb.add_field(name=game['game_name'], value="%s" % local_time.astimezone(pytz.timezone('America/Los_Angeles')), inline=False)
         emb.set_footer(text="All times in PST.")
         await message.channel.send(embed=emb)
