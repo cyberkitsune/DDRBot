@@ -1132,7 +1132,7 @@ class DDRBotClient(discord.Client):
                         self.warned_auto_error.append(user_id)
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
-                    print("[AUTO] Exception fetching photos for %s\n%s" % (user_id, ex))
+                    print("[AUTO] Exception fetching photos for %s\n%s" % (user_id, traceback.format_exc()))
                     self.warned_auto_error.append(user_id)
             else:
                 if user_id in self.warned_auto_error:
