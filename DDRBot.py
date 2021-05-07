@@ -787,11 +787,11 @@ class DDRBotClient(discord.Client):
         # Build an embed
         emb = discord.Embed()
         emb.title = "%s's Last Played Games" % message.author.name
-        emb.description = "as of %s" % datetime.datetime.now(pytz.timezone('America/Los_Angeles').strftime(time_out_format))
+        emb.description = "as of %s" % datetime.datetime.now(pytz.timezone('America/Los_Angeles')).strftime(time_out_format)
         for game in games:
             #FIXME Appending '00' to satisfy python's %z is a huge fucking hack oh my god
             local_time = datetime.datetime.strptime(game['lasttime'] + "00", "%Y-%m-%d %H:%M:%S%z")
-            emb.add_field(name=game['game_name'], value="Last player at %s" % local_time.astimezone(pytz.timezone('America/Los_Angeles').strftime(time_out_format)), inline=False)
+            emb.add_field(name=game['game_name'], value="Last player at %s" % local_time.astimezone(pytz.timezone('America/Los_Angeles')).strftime(time_out_format), inline=False)
         emb.set_footer(text="All times in PST.")
         await message.channel.send(embed=emb)
 
