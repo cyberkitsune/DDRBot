@@ -1121,7 +1121,7 @@ class DDRBotClient(discord.Client):
                 continue
 
             if str(user_id) not in self.linked_eamuse:
-                print("[AUTO] User %s is not logged in, skipping...") % user_id
+                print("[AUTO] User %s is not logged in, skipping..." % user_id)
                 continue
 
             try:
