@@ -44,6 +44,7 @@ if __name__ == "__main__":
         text = f.read()
 
     parser = DDRMusicPageParser(text)
-
+    new_songs = []
     for song in parser.songs:
-        print(json.dumps(dict(song)))
+        new_songs.append(dict(song))
+    print(json.dumps(new_songs))
