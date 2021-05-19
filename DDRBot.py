@@ -841,6 +841,10 @@ class DDRBotClient(discord.Client):
             ss = await self.loop.run_in_executor(None, sst, img, scale_factor)
             pd = await self.loop.run_in_executor(None, pdt, ss)
             if isinstance(pd, DDRParsedData):
+                if pd.is_course:
+                    ss = await self.loop.run_in_executor(None, sst, img, scale_factor, True)
+                    pd = await self.loop.run_in_executor(None, pdt, ss, True)
+            if isinstance(pd, DDRParsedData):
                 harvest_cover(ss, pd)
                 emb = generate_embed(pd, pd.dancer_name.value)
                 await message.channel.send(embed=emb)
@@ -1268,6 +1272,11 @@ class DDRBotClient(discord.Client):
             try:
                 ss = await self.loop.run_in_executor(None, sst, img, scale_factor)
                 sd = await self.loop.run_in_executor(None, pdt, ss)
+                if isinstance(sd, DDRParsedData):
+                    if sd.is_course:
+                        ss = await self.loop.run_in_executor(None, sst, img, scale_factor, True)
+                        sd = await self.loop.run_in_executor(None, pdt, ss, True)
+
             except Exception as ex:
                 print("[DBTask] Can't parse image, skipping... Ex: %s" % ex)
                 continue
