@@ -1117,6 +1117,9 @@ class DDRBotClient(discord.Client):
             eal = None
             photos = []
 
+            if user_id is None:
+                continue
+
             if str(user_id) not in self.linked_eamuse:
                 print("[AUTO] User %s is not logged in, skipping...") % user_id
                 continue
