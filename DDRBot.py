@@ -1094,6 +1094,8 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.feed_task())
 
     async def auto_task(self):
+        print("[AUTO] Waiting until bot is ready...")
+        await self.wait_until_ready()
         if len(self.add_autos) > 0:
             for user_id in self.add_autos:
                 self.auto_users[user_id] = 0
@@ -1112,6 +1114,11 @@ class DDRBotClient(discord.Client):
             # Fetch screenshots
             eal = None
             photos = []
+
+            if str(user_id) not in self.linked_eamuse:
+                print("[AUTO] User %s is not logged in, skipping...")
+                continue
+
             try:
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
                 photos = await self.loop.run_in_executor(None, eal.get_screenshot_list)
