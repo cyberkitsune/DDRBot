@@ -1382,13 +1382,14 @@ class DDRBotClient(discord.Client):
 
 
 def update_songdb():
-    print("[GENIE] Updating DDR song DB from Konami")
-    ddrapi = DDRApi(EAGate())
-    songs = ddrapi.get_ddr_songs()
-    out_json = json.dumps(songs)
-    with open("DDRGenie/genie_assets/a20_songlist.json", 'w') as f:
-        f.write(out_json)
-    print("[GENIE] DB Updated.")
+    if not os.path.exists("DDRGenie/genie_assets/a20_songlist.json"):
+        print("[GENIE] Updating DDR song DB from Konami")
+        ddrapi = DDRApi(EAGate())
+        songs = ddrapi.get_ddr_songs()
+        out_json = json.dumps(songs)
+        with open("DDRGenie/genie_assets/a20_songlist.json", 'w') as f:
+            f.write(out_json)
+        print("[GENIE] DB Updated.")
 
 
 if __name__ == "__main__":
