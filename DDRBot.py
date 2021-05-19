@@ -1366,7 +1366,19 @@ class DDRBotClient(discord.Client):
                     raise Exception("DeepAI didn't return an upscaled image...\nOutput: %s", js)
 
 
+def update_songdb():
+    print("[GENIE] Updating DDR song DB from Konami")
+    ddrapi = DDRApi(EAGate())
+    songs = ddrapi.get_ddr_songs()
+    out_json = json.dumps(songs)
+    with open("DDRGenie/genie_assets/a20_songlist.json", 'w') as f:
+        f.write(out_json)
+    print("[GENIE] DB Updated.")
+
+
 if __name__ == "__main__":
+    if os.path.exists("DDR_GENIE_ON"):
+        update_songdb()
     bot = DDRBotClient(sys.argv[2])
     try:
         bot.run(sys.argv[1])

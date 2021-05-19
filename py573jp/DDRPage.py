@@ -1,8 +1,7 @@
-from . import EAGate, DDRRivalTableParser
+from . import EAGate, DDRRivalTableParser, DDRMusicPageParser
 
 
 class DDRApi():
-    eagate: EAGate = None
 
     def __init__(self, eagate):
         """
@@ -59,3 +58,21 @@ class DDRApi():
         rival_parser.feed(html)
 
         return rival_parser.rivals
+
+    def get_ddr_songs(self):
+        uri_base = "https://p.eagate.573.jp/game/ddr/ddra20/p/music/index.html?offset=%i&filter=0&filtertype=0&playmode=2"
+        offset = 0
+
+        songs = []
+        while offset < 20:
+            html = self.eagate.get_page(uri_base % offset)
+            parser = DDRMusicPageParser.DDRMusicPageParser(html)
+            if len(parser.songs) == 0:
+                break
+
+            for song in parser.songs:
+                songs.append(dict(song))
+
+            offset += 1
+
+        return songs
