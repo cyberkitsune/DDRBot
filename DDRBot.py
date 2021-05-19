@@ -279,7 +279,9 @@ class DDRBotClient(discord.Client):
 
         self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
         self.deep_ai = None
-        super().__init__()
+        intents = discord.Intents.default()
+        intents.members = True
+        super().__init__(intents=intents)
 
     async def on_ready(self):
         print("[BOT] DDRBot is ready!")
@@ -1116,7 +1118,7 @@ class DDRBotClient(discord.Client):
             photos = []
 
             if str(user_id) not in self.linked_eamuse:
-                print("[AUTO] User %s is not logged in, skipping...")
+                print("[AUTO] User %s is not logged in, skipping...") % user_id
                 continue
 
             try:
