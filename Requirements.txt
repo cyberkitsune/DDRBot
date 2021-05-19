@@ -6,3 +6,4 @@ Pillow
 Pillow-PIL
 pytesseract
 pytz
+beautifulsoup4

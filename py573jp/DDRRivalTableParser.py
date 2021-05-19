@@ -20,11 +20,6 @@ class DDRRival(object):
 
 
 class DDRRivalTableParser(HTMLParser):
-    currentTag = None
-    currentPosition = 0
-    currentClass = None
-    currentRival = None
-    rivals = []
 
     def __init__(self):
         self.currentTag = None
