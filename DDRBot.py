@@ -1096,8 +1096,10 @@ class DDRBotClient(discord.Client):
         self.loop.create_task(self.feed_task())
 
     async def auto_task(self):
-        print("[AUTO] Waiting until bot is ready...")
-        await self.wait_until_ready()
+        if not self.is_ready():
+            print("[AUTO] Waiting until bot is ready...")
+            await self.wait_until_ready()
+
         if len(self.add_autos) > 0:
             for user_id in self.add_autos:
                 self.auto_users[user_id] = 0
@@ -1110,7 +1112,7 @@ class DDRBotClient(discord.Client):
                     del self.auto_users[user_id]
             self.remove_autos = []
             save_json("auto.json", self.auto_users)
-
+        remove_queue = []
         for user_id in self.auto_users:
             last_time = int(self.auto_users[user_id])
             # Fetch screenshots
@@ -1122,6 +1124,7 @@ class DDRBotClient(discord.Client):
 
             if str(user_id) not in self.linked_eamuse:
                 print("[AUTO] User %s is not logged in, skipping..." % user_id)
+                remove_queue.append(user_id)
                 continue
 
             try:
@@ -1199,6 +1202,9 @@ class DDRBotClient(discord.Client):
                     else:
                         await channel.send(files=screenshot_files)
                     save_json("auto.json", self.auto_users)
+
+        for remove_me in remove_queue:
+            del self.auto_users[remove_me]
 
         await asyncio.sleep(60)
         self.loop.create_task(self.auto_task())
