@@ -25,9 +25,10 @@ class EAGate():
         pass
 
     def get_page(self, uri):
-        if self.session_id is None:
-            raise Exception("EAGate API is not authenticated! Please login or specify a session id.")
-        cookies = dict(M573SSID=self.session_id)
+        if self.session_id is not None:
+            cookies = dict(M573SSID=self.session_id)
+        else:
+            cookies = {}
         r = requests.get(uri, cookies=cookies)
         r.raise_for_status() # Error handling for 404, 403, etc...
 
