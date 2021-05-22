@@ -262,6 +262,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['authorize'] = self.auth_channel
         self.command_handlers['last'] = self.last_command
         self.command_handlers['yeet'] = self.yeet
+        self.command_handlers['debug_user'] = self.debug_user
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
@@ -769,6 +770,24 @@ class DDRBotClient(discord.Client):
                 await message.channel.send("You're not opted-in to automatic screenshots. Opt in by running `%sauto on`" % self.command_prefix)
         else:
             await message.channel.send("Invalid syntax.\nUsage:\n```%sauto (on | off)```" % self.command_prefix)
+
+    async def debug_user(self, message):
+        if str(message.author.id) not in self.linked_eamuse:
+            await message.channel.send("You must link you e-amusement account to use this command! Use `%slink` to link your account." % self.command_prefix)
+            return
+
+        if not isinstance(message.channel, discord.DMChannel):
+            await message.channel.send("Please run this in a DM!!!")
+            return
+
+        eal = EALink(cookies=(self.linked_eamuse[str(message.author.id)][0],
+                              self.linked_eamuse[str(message.author.id)][1]))
+
+        user_data = eal.user_detail(eal.get_my_uuid())
+
+        await message.channel.send("Your e-am app user data: \n```\n%s\n```") % json.dumps(user_data, indent=4)
+
+
 
     async def last_command(self, message):
         if str(message.author.id) not in self.linked_eamuse:
