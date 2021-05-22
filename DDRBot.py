@@ -4,7 +4,7 @@ import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
-from py573jp.Exceptions import EALinkException, EALoginException
+from py573jp.Exceptions import EALinkException, EALoginException, EAMaintenanceException
 from Misc import RepresentsInt
 from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
@@ -1168,6 +1168,9 @@ class DDRBotClient(discord.Client):
                     else:
                         print("[AUTO] I couldn't find user %s... Account deleted?" % user_id)
                         self.warned_auto_error.append(user_id)
+            except EAMaintenanceException as ex:
+                print("[AUTO] E-Amusement is in maintenance, skipping...")
+                continue
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
                     print("[AUTO] Exception fetching photos for %s\n%s" % (user_id, traceback.format_exc()))
