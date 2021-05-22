@@ -785,7 +785,7 @@ class DDRBotClient(discord.Client):
 
         user_data = eal.user_detail(eal.get_my_uuid())
 
-        await message.channel.send("Your e-am app user data: \n```\n%s\n```") % json.dumps(user_data, indent=4)
+        await message.channel.send("Your e-am app user data: \n```\n%s\n```" % json.dumps(user_data, indent=4))
 
 
 
