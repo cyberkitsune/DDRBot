@@ -382,7 +382,7 @@ class DDRBotClient(discord.Client):
     async def on_reaction_add(self, reaction, user):
         message = reaction.message
         if message.id in self.notify_messages and not user.bot:
-            num = w2n.word_to_num(reaction.emoji.name)
+            num = w2n.word_to_num(emoji.demojize(reaction.emoji, delimiters=''))
             aid = str(message.author.id)
             if aid in self.active_users:
                 self.active_users[aid]["arcade"] = list(self.monitoring_arcades.keys())[num - 1]
