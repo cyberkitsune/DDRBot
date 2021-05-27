@@ -474,13 +474,13 @@ class DDRBotClient(discord.Client):
             await message.add_reaction('<:eming:572201816792629267>')
             return
 
-        msg_string = "Verified users currently at **%s**:\n" % arcade_item
+        msg_string = "Verified users currently at **%s**:\n```" % arcade_item
         for user in self.active_users:
             if self.active_users[user]['arcade'] == arcade_item:
                 duser = self.get_user(int(user))
                 if duser is not None:
-                    msg_string += "+\t%s#%s\n```" % (duser.name, duser.discriminator)
-
+                    msg_string += " + \t%s#%s\n" % (duser.name, duser.discriminator)
+        msg_string += "```"
         await message.channel.send(msg_string)
 
     async def debug_trigger(self, message):
@@ -1205,7 +1205,7 @@ class DDRBotClient(discord.Client):
                     channel = self.get_channel(int(self.monitoring_arcades[usr_dict['arcade']]['channel_id']))
                     duser = self.get_user(int(user))
                     if channel is not None and duser is not None:
-                        await channel.send("```\n>>> \t%s#%s\n```" % (duser.name, duser.discriminator))
+                        await channel.send("```\n + \t%s#%s\n```" % (duser.name, duser.discriminator))
 
             last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_time'])
             current_utc = datetime.datetime.utcnow()
