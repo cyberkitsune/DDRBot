@@ -476,7 +476,7 @@ class DDRBotClient(discord.Client):
             await message.add_reaction('<:eming:572201816792629267>')
             return
 
-        self.active_users[str(message.author.id)] = {'notified': False, 'reported': False, 'arcade': None, 'last_time': datetime.datetime.utcnow()}
+        self.active_users[str(message.author.id)] = {'notified': False, 'reported': False, 'arcade': None, 'last_time': datetime.datetime.utcnow().timestamp()}
         await message.channel.send("Making you play DDR RIGHT NOW...")
 
     async def add_arcade(self, message):
