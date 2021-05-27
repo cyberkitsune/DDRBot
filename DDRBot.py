@@ -1,6 +1,7 @@
 from typing import List, Any
 
 import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse, pytz, inflect
+from word2number import w2n
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
@@ -377,6 +378,16 @@ class DDRBotClient(discord.Client):
                     await message.channel.send("Sorry! %s is not a command... try doing %shelp..." % (command_name, self.command_prefix))
         elif do_command and not should_listen:
             await message.channel.send("Sorry! I can't run commands in this channel. Ask a bot admin or the server owner to run %sauthorize in here." % self.command_prefix)
+
+    async def on_reaction_add(self, reaction, user):
+        message = reaction.message
+        if message.id in self.notify_messages and not user.bot:
+            num = w2n.word_to_num(reaction.emoji.name)
+            aid = str(message.author.id)
+            if aid in self.active_users:
+                self.active_users[aid]["arcade"] = list(self.monitoring_arcades.keys())[num - 1]
+                await message.channel.send("You've successfully checked into **%s**!" % list(self.monitoring_arcades.keys())[num - 1])
+                self.notify_messages.remove(message.id)
 
     async def meme_manage(self, message):
         can_add = str(message.author.id) in self.admin_users
