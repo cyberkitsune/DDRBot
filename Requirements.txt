@@ -9,3 +9,4 @@ pytz
 beautifulsoup4
 inflect
 word2number
+emoji

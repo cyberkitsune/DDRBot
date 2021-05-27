@@ -1,6 +1,6 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse, pytz, inflect
+import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse, pytz, inflect, emoji
 from word2number import w2n
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
@@ -1190,7 +1190,7 @@ class DDRBotClient(discord.Client):
                     message = await dmc.send(msg_text)
                     arc_num = 1
                     for arcade in self.monitoring_arcades:
-                        await message.add_reaction(":%s:" % inflect.engine().number_to_words(arc_num))
+                        await message.add_reaction(emoji.emojize(inflect.engine().number_to_words(arc_num)))
                         arc_num += 1
 
                     self.notify_messages.append(message.id)
