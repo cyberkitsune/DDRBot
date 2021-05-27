@@ -1190,7 +1190,7 @@ class DDRBotClient(discord.Client):
                     message = await dmc.send(msg_text)
                     arc_num = 1
                     for arcade in self.monitoring_arcades:
-                        await message.add_reaction(inflect.engine().number_to_words(arc_num))
+                        await message.add_reaction(":%s:" % inflect.engine().number_to_words(arc_num))
                         arc_num += 1
 
                     self.notify_messages.append(message.id)
