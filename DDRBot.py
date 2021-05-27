@@ -1176,7 +1176,7 @@ class DDRBotClient(discord.Client):
             usr_dict = self.active_users[user]
             if not usr_dict['notified']:
                 usr_dict['notified'] = True
-                user = self.get_user(user)
+                user = self.get_user(int(user))
                 if user is not None:
                     dmc = user.dm_channel()
                     if dmc is None:
@@ -1192,12 +1192,14 @@ class DDRBotClient(discord.Client):
                         await message.add_reaction(inflect.engine().number_to_words(arc_num))
 
                     self.notify_messages.append(message.id)
+                else:
+                    print("Can't DM user %s, they're none!" % user)
 
             if not usr_dict['reported'] and usr_dict['arcade'] is not None:
                 usr_dict['reported'] = True
                 if usr_dict['arcade'] in self.monitoring_arcades:
                     channel = self.get_channel(int(self.monitoring_arcades[usr_dict['arcade']]['channel_id']))
-                    user = self.get_user(user)
+                    user = self.get_user(int(user))
                     if channel is not None and user is not None:
                         await channel.send("```\n+%s#%s\n```" % (user.name, user.discriminator))
 
