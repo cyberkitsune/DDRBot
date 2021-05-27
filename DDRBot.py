@@ -1,12 +1,11 @@
 from typing import List, Any
 
-import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse, pytz
+import discord, sys, asyncio, datetime, io, os, json, traceback, random, aiohttp, urllib.parse, pytz, inflect
 from py573jp.EAGate import EAGate
 from py573jp.DDRPage import DDRApi
 from py573jp.EALink import EALink
 from py573jp.Exceptions import EALinkException, EALoginException, EAMaintenanceException
 from Misc import RepresentsInt
-from DDRArcadeMonitor import DDRArcadeMonitor
 from asyncio import queues
 
 if os.path.exists("DDR_GENIE_ON"):
@@ -230,7 +229,6 @@ class DDRBotClient(discord.Client):
     command_handlers = {}
     command_prefix = 'k!'
     authorized_channels = {}
-    monitoring_arcades: List[DDRArcadeMonitor] = []
     linked_eamuse = {}
     shown_screenshots = {}
     memes = {}
@@ -278,7 +276,13 @@ class DDRBotClient(discord.Client):
             self.command_handlers['csv'] = self.csv_command
             #self.command_handlers['pb'] = self.list_pb
 
-        self.monitoring_arcades.append(DDRArcadeMonitor(sys.argv[2]))
+        if os.path.exists("MACHINE_TRACKING"):
+            self.monitoring_arcades = {}
+            self.monitoring_users = []
+            self.active_users = {}
+            self.last_check = datetime.datetime.utcnow().timestamp()
+            self.notify_messages = []
+
         self.deep_ai = None
         intents = discord.Intents.default()
         intents.members = True
@@ -301,10 +305,14 @@ class DDRBotClient(discord.Client):
         if os.path.exists("memes.json"):
             print("[BOT] Loaded memes!")
             self.memes = load_json("memes.json")
-        if not self.task_created:
+        if not self.task_created and os.path.exists("MACHINE_TRACKING"):
+            if os.path.exists("monitor_arcades.json"):
+                self.monitoring_arcades = load_json("monitor_arcades.json")
+            if os.path.exists("monitor_users.json"):
+                self.monitoring_users = load_json("monitor_users.json")
             self.loop.create_task(self.monitor_task())
             self.task_created = True
-            print("[TASK] Created monitoring thread!")
+            print("[TASK] Created monitoring updating thread!")
         if not self.auto_task_created:
             self.loop.create_task(self.auto_task())
             self.auto_task_created = True
@@ -1027,57 +1035,91 @@ class DDRBotClient(discord.Client):
             save_json("shown.json", self.shown_screenshots)
 
     async def monitor_task(self):
-        if 'reporting' not in self.authorized_channels:
-            self.authorized_channels['reporting'] = []
-        if len(self.authorized_channels['reporting']) == 0:
+        if len(self.monitoring_arcades) == 0:
             await asyncio.sleep(60)
             self.loop.create_task(self.monitor_task())
             return
-        for arcade in self.monitoring_arcades:
-            new_users = []
-            api = EAGate(arcade.api_key)
-            ddr = DDRApi(api)
+
+        # First, update all users and move any people who've started to play to pending
+        for user in self.monitoring_users:
+            if str(user) not in self.linked_eamuse:
+                continue
+
+            eal = EALink(cookies=(self.linked_eamuse[str(user)][0],
+                                  self.linked_eamuse[str(user)][1]))
+            games = None
             try:
-                current_users = await self.loop.run_in_executor(None, ddr.fetch_recent_players)
-            except Exception:
-                current_users = []
-
-            if len(current_users) == 0:
-                if not self.warned_no_users:
-                    print("[MONITOR] Warning: No current users returned...")
-                    for channel_id in self.authorized_channels['reporting']:
-                        channel = self.get_channel(channel_id)
-                        if channel is not None:
-                            await channel.send("Hey! There are no recent users... this could be a bug!!! (Or maintenance)")
-                    self.warned_no_users = True
+                user_data = eal.user_detail(eal.get_my_uuid())
+                games = user_data['game_list']
+            except (EALinkException, EALoginException, EAMaintenanceException) as ex:
                 continue
-            else:
-                if self.warned_no_users:
-                    self.warned_no_users = False
-            if len(arcade.recent_players) == 0:
-                arcade.recent_players = current_users
+            except Exception as ex:
+                print("[Monitor] Unhandled exception checking user %s! \n%s" % (user, traceback.format_exc()))
                 continue
-            old_set = arcade.recent_players
-            if old_set[0] != current_users[0]:
-                new_users.append(current_users[0])
-                if old_set[0] != current_users[1]:
-                    new_users.append(current_users[1]) # for 2p
+            if games is None or len(games) < 1:
+                continue
 
-            elif old_set[0] == current_users[0] and old_set[1] != current_users[1]:
-                new_users.append(current_users[0])
-                new_users.append(current_users[1])
+            ddr_item = next((item for item in games if item["game_id"] == "15"), None)
 
-            arcade.recent_players = current_users
+            if ddr_item is None:
+                continue
 
-            if len(new_users) > 0:
-                user_str = '\n'.join(['%s\t%i' % (x.name, x.ddrid) for x in new_users])
-                n_message = "Just logged out:\n```%s```" % user_str
-                print("[MONITOR] %s" % n_message)
-                if len(self.authorized_channels['reporting']) > 0:
-                    for channel_id in self.authorized_channels['reporting']:
-                        channel = self.get_channel(channel_id)
-                        if channel is not None:
-                            await channel.send(n_message)
+            local_time_jst = datetime.datetime.strptime(ddr_item['lasttime'] + "00", "%Y-%m-%d %H:%M:%S%z")
+            local_tstamp = local_time_jst.astimezone(pytz.timezone('UTC')).timestamp()
+
+            if local_tstamp > self.last_check:
+                if user not in self.active_users:
+                    self.active_users[user] = {'notified': False, 'reported': False, 'arcade': None, 'last_time': local_tstamp}
+                else:
+                    self.active_users[user]['last_time'] = local_tstamp
+            # Update check time
+            self.last_check = datetime.datetime.utcnow().timestamp()
+
+            removals = []
+            # Next, handle all active users
+            for user in self.active_users:
+                usr_dict = self.active_users[user]
+                if not usr_dict['notified']:
+                    user_data['notified'] = True
+                    user = self.get_user(user)
+                    if user is not None:
+                        dmc = user.dm_channel()
+                        if dmc is None:
+                            dmc = await user.create_dm()
+                        msg_text = "Hey! I've noticed you're playing DDR right now! owo\nIt'd be super cool if you could confirm what arcade you're at! React with: \n"
+                        arc_num = 1
+                        for arcade in self.monitoring_arcades:
+                            msg_text += ":%s: for **%s**\n" % (inflect.engine().number_to_words(arc_num), arcade)
+                            arc_num += 1
+                        message = await dmc.send(msg_text)
+                        for x in range(1, arc_num - 1):
+                            await message.add_reaction(inflect.engine().number_to_words(arc_num), arcade)
+
+                        self.notify_messages.append(message.id)
+
+                if not usr_dict['reported'] and usr_dict['arcade'] is not None:
+                    usr_dict['reported'] = True
+                    if usr_dict['arcade'] in self.monitoring_arcades:
+                        channel = self.get_channel(int(self.monitoring_arcades[usr_dict['arcade']]['channel_id']))
+                        user = self.get_user(user)
+                        if channel is not None and user is not None:
+                            await channel.send("```\n+%s#%s\n```" % (user.name, user.discriminator))
+
+                last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_play_tstamp'])
+                current_utc = datetime.datetime.utcnow()
+                diff_secs = (current_utc - last_play_utc).total_seconds()
+
+                if diff_secs > 3600:
+                    removals.append(user)
+
+                self.active_users[user] = usr_dict
+
+            for user in removals:
+                #TODO: Announce they've left?
+                del self.active_users[user]
+
+
+
         await asyncio.sleep(60)
         self.loop.create_task(self.monitor_task())
 
