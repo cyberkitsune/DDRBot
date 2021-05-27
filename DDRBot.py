@@ -285,6 +285,7 @@ class DDRBotClient(discord.Client):
             self.command_handlers['addarcade'] = self.add_arcade
             self.command_handlers['trackme'] = self.track_me
             self.command_handlers['here'] = self.here
+            self.command_handlers['debug_trigger'] = self.debug_trigger
 
         self.deep_ai = None
         intents = discord.Intents.default()
@@ -446,6 +447,34 @@ class DDRBotClient(discord.Client):
         else:
             await message.add_reaction('<:eming:572201816792629267>')
 
+    async def here(self, message):
+        if not isinstance(message.channel, discord.TextChannel):
+            await message.channel.send("Sorry, you can't run this in a DM.")
+            return
+
+        arcade_item = next((item for item in self.monitoring_arcades if item["channel_id"] == str(message.channel.id)), None)
+
+        if arcade_item is None:
+            await message.add_reaction('<:eming:572201816792629267>')
+            return
+
+        msg_string = "Verified users currently at **%s**:\n" % arcade_item
+        for user in self.active_users:
+            if self.active_users[user]['arcade'] == arcade_item:
+                user = self.get_user(user)
+                if user is not None:
+                    msg_string += "+%s#%s\n```" % (user.name, user.discriminator)
+
+        await message.channel.send(msg_string)
+
+    async def debug_trigger(self, message):
+        can_yeet = str(message.author.id) in self.admin_users
+        if not can_yeet:
+            await message.add_reaction('<:eming:572201816792629267>')
+            return
+
+        self.active_users[str(message.author.id)] = {'notified': False, 'reported': False, 'arcade': None, 'last_time': datetime.datetime.utcnow()}
+
     async def add_arcade(self, message):
         if not isinstance(message.channel, discord.TextChannel):
             await message.channel.send("Sorry, you can't run this in a DM.")
@@ -478,8 +507,15 @@ class DDRBotClient(discord.Client):
 
         save_json("monitor_arcades.json", self.monitoring_arcades)
 
+    async def track_me(self, message):
+        uid = str(message.author.id)
 
-
+        if uid in self.monitoring_users:
+            self.monitoring_users.remove(uid)
+            await message.channel.send("You will no longer be asked to check into arcades when you play!")
+        else:
+            self.monitoring_users.append(uid)
+            await message.channel.send("When you play DDR next, I'll DM you to see which arcade you're at!")
 
     def check_shitpost(self, message):
         if isinstance(message.channel, discord.DMChannel):
