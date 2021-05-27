@@ -385,7 +385,7 @@ class DDRBotClient(discord.Client):
             emoj = emoji.demojize(reaction.emoji)
             num_str = ''.join(i for i in emoj if i.isdigit())
             num = w2n.word_to_num(num_str)
-            aid = str(message.author.id)
+            aid = str(user.id)
             if aid in self.active_users:
                 self.active_users[aid]["arcade"] = list(self.monitoring_arcades.keys())[num - 1]
                 await message.channel.send("You've successfully checked into **%s**!" % list(self.monitoring_arcades.keys())[num - 1])
