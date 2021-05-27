@@ -1190,7 +1190,7 @@ class DDRBotClient(discord.Client):
                     if channel is not None and user is not None:
                         await channel.send("```\n+%s#%s\n```" % (user.name, user.discriminator))
 
-            last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_play_tstamp'])
+            last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_time'])
             current_utc = datetime.datetime.utcnow()
             diff_secs = (current_utc - last_play_utc).total_seconds()
 
