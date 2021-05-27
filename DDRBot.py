@@ -477,6 +477,7 @@ class DDRBotClient(discord.Client):
             return
 
         self.active_users[str(message.author.id)] = {'notified': False, 'reported': False, 'arcade': None, 'last_time': datetime.datetime.utcnow()}
+        await message.channel.send("Making you play DDR RIGHT NOW...")
 
     async def add_arcade(self, message):
         if not isinstance(message.channel, discord.TextChannel):
@@ -510,6 +511,7 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Removed %s from arcade monitoring." % arcade_item)
         else:
             self.monitoring_arcades[name] = {'channel_id': cid}
+            await message.channel.send("Added %s to arcade monitoring." % name)
 
         save_json("monitor_arcades.json", self.monitoring_arcades)
 
@@ -1157,51 +1159,49 @@ class DDRBotClient(discord.Client):
             # Update check time
             self.last_check = datetime.datetime.utcnow().timestamp()
 
-            removals = []
-            # Next, handle all active users
-            for user in self.active_users:
-                usr_dict = self.active_users[user]
-                if not usr_dict['notified']:
-                    user_data['notified'] = True
+        removals = []
+        # Next, handle all active users
+        for user in self.active_users:
+            usr_dict = self.active_users[user]
+            if not usr_dict['notified']:
+                usr_dict['notified'] = True
+                user = self.get_user(user)
+                if user is not None:
+                    dmc = user.dm_channel()
+                    if dmc is None:
+                        dmc = await user.create_dm()
+                    msg_text = "Hey! I've noticed you're playing DDR right now! owo\nIt'd be super cool if you could confirm what arcade you're at! React with: \n"
+                    arc_num = 1
+                    for arcade in self.monitoring_arcades:
+                        msg_text += ":%s: for **%s**\n" % (inflect.engine().number_to_words(arc_num), arcade)
+                        arc_num += 1
+                    msg_text += "If your arcade is not on this list, please disregard this message."
+                    message = await dmc.send(msg_text)
+                    for x in range(1, arc_num - 1):
+                        await message.add_reaction(inflect.engine().number_to_words(arc_num))
+
+                    self.notify_messages.append(message.id)
+
+            if not usr_dict['reported'] and usr_dict['arcade'] is not None:
+                usr_dict['reported'] = True
+                if usr_dict['arcade'] in self.monitoring_arcades:
+                    channel = self.get_channel(int(self.monitoring_arcades[usr_dict['arcade']]['channel_id']))
                     user = self.get_user(user)
-                    if user is not None:
-                        dmc = user.dm_channel()
-                        if dmc is None:
-                            dmc = await user.create_dm()
-                        msg_text = "Hey! I've noticed you're playing DDR right now! owo\nIt'd be super cool if you could confirm what arcade you're at! React with: \n"
-                        arc_num = 1
-                        for arcade in self.monitoring_arcades:
-                            msg_text += ":%s: for **%s**\n" % (inflect.engine().number_to_words(arc_num), arcade)
-                            arc_num += 1
-                        msg_text += "If your arcade is not on this list, please disregard this message."
-                        message = await dmc.send(msg_text)
-                        for x in range(1, arc_num - 1):
-                            await message.add_reaction(inflect.engine().number_to_words(arc_num))
+                    if channel is not None and user is not None:
+                        await channel.send("```\n+%s#%s\n```" % (user.name, user.discriminator))
 
-                        self.notify_messages.append(message.id)
+            last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_play_tstamp'])
+            current_utc = datetime.datetime.utcnow()
+            diff_secs = (current_utc - last_play_utc).total_seconds()
 
-                if not usr_dict['reported'] and usr_dict['arcade'] is not None:
-                    usr_dict['reported'] = True
-                    if usr_dict['arcade'] in self.monitoring_arcades:
-                        channel = self.get_channel(int(self.monitoring_arcades[usr_dict['arcade']]['channel_id']))
-                        user = self.get_user(user)
-                        if channel is not None and user is not None:
-                            await channel.send("```\n+%s#%s\n```" % (user.name, user.discriminator))
+            if diff_secs > 3600:
+                removals.append(user)
 
-                last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_play_tstamp'])
-                current_utc = datetime.datetime.utcnow()
-                diff_secs = (current_utc - last_play_utc).total_seconds()
+            self.active_users[user] = usr_dict
 
-                if diff_secs > 3600:
-                    removals.append(user)
-
-                self.active_users[user] = usr_dict
-
-            for user in removals:
-                #TODO: Announce they've left?
-                del self.active_users[user]
-
-
+        for user in removals:
+            #TODO: Announce they've left?
+            del self.active_users[user]
 
         await asyncio.sleep(60)
         self.loop.create_task(self.monitor_task())
