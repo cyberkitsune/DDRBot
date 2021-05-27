@@ -529,6 +529,12 @@ class DDRBotClient(discord.Client):
         save_json("monitor_arcades.json", self.monitoring_arcades)
 
     async def track_me(self, message):
+        if str(message.author.id) not in self.linked_eamuse:
+            await message.channel.send("You need to link your e-amusement account so the bot can know when you're playing DDR.")
+            await message.channel.send(
+                "To do this, use `%slink` in a DM with the bot to link your account." % self.command_prefix)
+
+            return
         uid = str(message.author.id)
 
         if uid in self.monitoring_users:
@@ -891,8 +897,6 @@ class DDRBotClient(discord.Client):
         user_data = eal.user_detail(eal.get_my_uuid())
 
         await message.channel.send("Your e-am app user data is attached", file=discord.File(io.StringIO(json.dumps(user_data, indent=4)), filename="user_data.txt"))
-
-
 
     async def last_command(self, message):
         if str(message.author.id) not in self.linked_eamuse:
