@@ -1188,8 +1188,10 @@ class DDRBotClient(discord.Client):
                         arc_num += 1
                     msg_text += "If your arcade is not on this list, please disregard this message."
                     message = await dmc.send(msg_text)
-                    for x in range(1, arc_num - 1):
+                    arc_num = 1
+                    for arcade in self.monitoring_arcades:
                         await message.add_reaction(inflect.engine().number_to_words(arc_num))
+                        arc_num += 1
 
                     self.notify_messages.append(message.id)
                 else:
