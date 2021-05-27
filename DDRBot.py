@@ -1178,7 +1178,7 @@ class DDRBotClient(discord.Client):
                 usr_dict['notified'] = True
                 duser = self.get_user(int(user))
                 if duser is not None:
-                    dmc = duser.dm_channel()
+                    dmc = duser.dm_channel
                     if dmc is None:
                         dmc = await duser.create_dm()
                     msg_text = "Hey! I've noticed you're playing DDR right now! owo\nIt'd be super cool if you could confirm what arcade you're at! React with: \n"
