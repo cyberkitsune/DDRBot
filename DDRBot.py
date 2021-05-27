@@ -517,6 +517,8 @@ class DDRBotClient(discord.Client):
             self.monitoring_users.append(uid)
             await message.channel.send("When you play DDR next, I'll DM you to see which arcade you're at!")
 
+        save_json("monitor_users.json", self.monitoring_users)
+
     def check_shitpost(self, message):
         if isinstance(message.channel, discord.DMChannel):
             return True
