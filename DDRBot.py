@@ -452,7 +452,10 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Sorry, you can't run this in a DM.")
             return
 
-        arcade_item = next((item for item in self.monitoring_arcades if item["channel_id"] == str(message.channel.id)), None)
+        arcade_item = None
+        for arcade in self.monitoring_arcades:
+            if self.monitoring_arcades[arcade]['channel_id'] == str(message.channel.id):
+                arcade_item = arcade
 
         if arcade_item is None:
             await message.add_reaction('<:eming:572201816792629267>')
@@ -497,7 +500,10 @@ class DDRBotClient(discord.Client):
             await message.channel.send("Removed %s from arcade monitoring." % name)
 
         cid = str(message.channel.id)
-        arcade_item = next((item for item in self.monitoring_arcades if item["channel_id"] == cid), None)
+        arcade_item = None
+        for arcade in self.monitoring_arcades:
+            if self.monitoring_arcades[arcade]['channel_id'] == cid:
+                arcade_item = arcade
 
         if arcade_item is not None:
             del self.monitoring_arcades[arcade_item]
