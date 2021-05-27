@@ -282,6 +282,9 @@ class DDRBotClient(discord.Client):
             self.active_users = {}
             self.last_check = datetime.datetime.utcnow().timestamp()
             self.notify_messages = []
+            self.command_handlers['addarcade'] = self.add_arcade
+            self.command_handlers['trackme'] = self.track_me
+            self.command_handlers['here'] = self.here
 
         self.deep_ai = None
         intents = discord.Intents.default()
@@ -442,6 +445,41 @@ class DDRBotClient(discord.Client):
             raise YeetException("YEET")
         else:
             await message.add_reaction('<:eming:572201816792629267>')
+
+    async def add_arcade(self, message):
+        if not isinstance(message.channel, discord.TextChannel):
+            await message.channel.send("Sorry, you can't run this in a DM.")
+            return
+
+        can_yeet = str(message.author.id) in self.admin_users
+        if not can_yeet:
+            await message.add_reaction('<:eming:572201816792629267>')
+            return
+
+        args = message.content.split(' ')
+        if len(args) < 2:
+            await message.channel.send("Usage: `%saddarcade Arcade Name`" % self.command_prefix)
+            return
+
+        name = ' '.join(args[1:])
+
+        if name in self.monitoring_arcades:
+            del self.monitoring_arcades[name]
+            await message.channel.send("Removed %s from arcade monitoring." % name)
+
+        cid = str(message.channel.id)
+        arcade_item = next((item for item in self.monitoring_arcades if item["channel_id"] == cid), None)
+
+        if arcade_item is not None:
+            del self.monitoring_arcades[arcade_item]
+            await message.channel.send("Removed %s from arcade monitoring." % arcade_item)
+        else:
+            self.monitoring_arcades[name] = {'channel_id': cid}
+
+        save_json("monitor_arcades.json", self.monitoring_arcades)
+
+
+
 
     def check_shitpost(self, message):
         if isinstance(message.channel, discord.DMChannel):
@@ -1091,9 +1129,10 @@ class DDRBotClient(discord.Client):
                         for arcade in self.monitoring_arcades:
                             msg_text += ":%s: for **%s**\n" % (inflect.engine().number_to_words(arc_num), arcade)
                             arc_num += 1
+                        msg_text += "If your arcade is not on this list, please disregard this message."
                         message = await dmc.send(msg_text)
                         for x in range(1, arc_num - 1):
-                            await message.add_reaction(inflect.engine().number_to_words(arc_num), arcade)
+                            await message.add_reaction(inflect.engine().number_to_words(arc_num))
 
                         self.notify_messages.append(message.id)
 
