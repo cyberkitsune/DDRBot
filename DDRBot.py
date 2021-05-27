@@ -1176,11 +1176,11 @@ class DDRBotClient(discord.Client):
             usr_dict = self.active_users[user]
             if not usr_dict['notified']:
                 usr_dict['notified'] = True
-                user = self.get_user(int(user))
-                if user is not None:
-                    dmc = user.dm_channel()
+                duser = self.get_user(int(user))
+                if duser is not None:
+                    dmc = duser.dm_channel()
                     if dmc is None:
-                        dmc = await user.create_dm()
+                        dmc = await duser.create_dm()
                     msg_text = "Hey! I've noticed you're playing DDR right now! owo\nIt'd be super cool if you could confirm what arcade you're at! React with: \n"
                     arc_num = 1
                     for arcade in self.monitoring_arcades:
@@ -1199,9 +1199,9 @@ class DDRBotClient(discord.Client):
                 usr_dict['reported'] = True
                 if usr_dict['arcade'] in self.monitoring_arcades:
                     channel = self.get_channel(int(self.monitoring_arcades[usr_dict['arcade']]['channel_id']))
-                    user = self.get_user(int(user))
-                    if channel is not None and user is not None:
-                        await channel.send("```\n+%s#%s\n```" % (user.name, user.discriminator))
+                    duser = self.get_user(int(user))
+                    if channel is not None and duser is not None:
+                        await channel.send("```\n+%s#%s\n```" % (duser.name, duser.discriminator))
 
             last_play_utc = datetime.datetime.fromtimestamp(usr_dict['last_time'])
             current_utc = datetime.datetime.utcnow()
