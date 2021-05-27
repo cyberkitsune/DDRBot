@@ -1172,7 +1172,7 @@ class DDRBotClient(discord.Client):
 
         removals = []
         # Next, handle all active users
-        for user in self.active_users:
+        for user in list(self.active_users):
             usr_dict = self.active_users[user]
             if not usr_dict['notified']:
                 usr_dict['notified'] = True
