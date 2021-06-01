@@ -1,4 +1,6 @@
 from bs4 import BeautifulSoup
+from py573jp import EAGate, DDRPage
+import os
 
 
 # TODO Possibly track difficulties in here too...
@@ -36,15 +38,17 @@ class DDRMusicPageParser:
                                       data_entry.find('td', class_="artist_nam").text))
 
 
+def update_songdb():
+    if not os.path.exists("DDRGenie/genie_assets/a20_songlist.json"):
+        ddrapi = DDRPage.DDRApi(EAGate.EAGate())
+        songs = ddrapi.get_ddr_songs()
+        return songs
+
+
 if __name__ == "__main__":
     import json
-
-    text = None
-    with open("sample.html", 'r') as f:
-        text = f.read()
-
-    parser = DDRMusicPageParser(text)
+    song_list = update_songdb()
     new_songs = []
-    for song in parser.songs:
-        new_songs.append(dict(song))
+    for song in song_list:
+        new_songs.append(song)
     print(json.dumps(new_songs))
