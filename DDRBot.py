@@ -71,9 +71,9 @@ def get_emoji_for_fc(fc_text):
     elif 'PFC' in fc_text:
         return '<:pfc:472191264402702347>'
     elif 'GFC' in fc_text:
-        return '<:gfc:472191264830259201>'
+        return '<:gfc:844785257852960778>'
     elif 'FC' in fc_text:
-        return '<:fc:472191264453033984>'
+        return '<:fc:844785257164701708>'
     else:
         return ''
 
