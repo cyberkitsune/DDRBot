@@ -32,4 +32,4 @@ class EAGate():
         r = requests.get(uri, cookies=cookies)
         r.raise_for_status() # Error handling for 404, 403, etc...
 
-        return r.text
+        return r.content
