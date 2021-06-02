@@ -294,6 +294,8 @@ class DDRBotClient(discord.Client):
     lastrun = None
     auto_task_created = False
     auto_users = {}
+    gstats_task_created = False
+    gstats_users = {}
     add_autos = []
     remove_autos = []
     warned_auto_error = []
@@ -319,6 +321,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['yeet'] = self.yeet
         self.command_handlers['debug_user'] = self.debug_user
         self.command_handlers['gsrecent'] = self.itg_recent
+        self.command_handlers['gswatch'] = self.track_gstats
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
@@ -361,6 +364,9 @@ class DDRBotClient(discord.Client):
         if os.path.exists("auto.json"):
             print("[BOT] Loading automode users!")
             self.auto_users = load_json("auto.json")
+        if os.path.exists("gstats.json"):
+            print("[BOT] Loading groovestats users")
+            self.gstats_users = load_json("gstats.json")
         if os.path.exists("channels.json"):
             print("[BOT] Loading authorized channels!")
             self.authorized_channels = load_json("channels.json")
@@ -379,6 +385,9 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.auto_task())
             self.auto_task_created = True
             print("[TASK] Created auto thread")
+        if not self.gstats_task_created:
+            self.loop.create_task(self.gstats_task())
+            self.gstats_task_created = True
         if not self.db_task_started:
             self.loop.create_task(self.db_task())
             self.db_task_started = True
@@ -869,8 +878,31 @@ class DDRBotClient(discord.Client):
 
         await message.channel.send("**%s**'s most recent Groovestats Submission:" % most_recent.user_name, embed=emb)
 
+    async def track_gstats(self, message):
+        if str(message.author.id) in self.gstats_users:
+            del self.gstats_users[str(message.author.id)]
+            await message.channel.send("You've been removed from groovestats tracking.")
+            save_json("gstats.json", self.gstats_users)
+            return
+        args = message.content.split(" ")
+        if len(args) < 2 or not RepresentsInt(args[1]):
+            await message.channel.send("You didn't specify a Groove Stats user ID to assing yourself to!\n"
+                                       "Usage: `%sgswatch [your_groovestats_id]`\n"
+                                       "You can find your Groove Stats ID in your profile url, after `id=`" % self.command_prefix)
+            return
+        gsid = int(args[1])
+        gsc = GrooveStatsClient()
+        recent = gsc.get_recent(gsid)
+        if len(recent) < 1:
+            await message.channel.send("Userid **%i** either does not exist or has never submitted any scores. "
+                                       "You can only link after submission of at least one score.")
+            return
 
-
+        most_recent = recent[0]
+        self.gstats_users[str(message.author.id)] = (gsid, str(most_recent))
+        await message.channel.send("Thanks, **%s**! New score submissions will show up in KitsuneBot score feed channels for any server you're in."
+                                   % most_recent.user_name)
+        save_json("gstats.json", self.gstats_users)
 
     async def addreport_command(self, message):
         if not isinstance(message.channel, discord.TextChannel):
@@ -1461,6 +1493,47 @@ class DDRBotClient(discord.Client):
         for remove_me in remove_queue:
             del self.auto_users[remove_me]
 
+        await asyncio.sleep(60)
+        self.loop.create_task(self.auto_task())
+
+    async def gstats_task(self):
+        if not self.is_ready():
+            print("[AUTO] Waiting until bot is ready...")
+            await self.wait_until_ready()
+
+        for g_user in self.gstats_users:
+            guid, last_tracked = self.gstats_users[g_user]
+
+            gsc = GrooveStatsClient()
+            recents = gsc.get_recent(guid)
+            if len(recents) < 1:
+                continue
+
+            most_recent = recents[0]
+            if str(most_recent) != last_tracked:
+                print("[GSTATS] Posting new gstats in feed for user id (%s) - %s " % (g_user, most_recent.user_name))
+                self.gstats_users[g_user] = (guid, str(most_recent))
+                if most_recent.is_gslaunch:
+                    most_recent = gsc.get_detailed_for(most_recent)
+                song_data = gsc.song_info(most_recent.chart_id, most_recent.game_id, diff_to_id(most_recent.difficulty))
+
+                emb = generate_itg_embed(most_recent, song_data)
+                for channel_id in self.authorized_channels['feed']:
+                    channel = self.get_channel(int(channel_id))
+                    if channel is not None:
+                        do_send = False
+                        if channel.id == 680575323271856273:
+                            do_send = True
+                        else:
+                            chn_ids = []
+                            for member in channel.members:
+                                chn_ids.append(member.id)
+                            if int(g_user) in chn_ids:
+                                do_send = True
+                        if do_send:
+                            await channel.send(embed=emb)
+
+        save_json("gstats.json", self.gstats_users)
         await asyncio.sleep(60)
         self.loop.create_task(self.auto_task())
 
