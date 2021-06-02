@@ -8,6 +8,8 @@ from py573jp.EALink import EALink
 from py573jp.Exceptions import EALinkException, EALoginException, EAMaintenanceException
 from Misc import RepresentsInt
 from asyncio import queues
+from pygroovestats.GrooveStatsClient import GrooveStatsClient
+from pygroovestats.GrooveStatsUtils import GSScoreEntry, GSSongInfo, parse_score_judges, diff_to_id
 
 if os.path.exists("DDR_GENIE_ON"):
     from DDRScoreDB import db, User, Score, IIDXScore, DBTaskWorkItem
@@ -221,6 +223,58 @@ def generate_embed_from_db(score_data, score_player, verified=False, cmd_prefix=
     return emb
 
 
+def generate_itg_embed(groovestats_data, song_info):
+    """
+       :type groovestats_data: GSScoreEntry
+       :type song_info: GSSongInfo
+       """
+    emb = discord.Embed()
+
+    emb.title = "<:ddr_arrow:687073061039505454> %s by %s (%sSP %s)" % (song_info.song_name, song_info.song_artist, groovestats_data.difficulty[0], groovestats_data.level)
+    emb.description = "Played by %s" % groovestats_data.user_name
+
+
+    emb.add_field(name="📈 Score", value="%s" % groovestats_data.score, inline=True)
+    footer = ''
+    if groovestats_data.is_gslaunch:
+        total_notes = song_info.song_steps + song_info.song_holds + song_info.song_rolls + song_info.song_jumps
+        extended = parse_score_judges(groovestats_data, total_notes)
+
+        fant_percent = (int(extended.fantastic) / total_notes) * 100
+        exec_percent = (int(extended.excellent) / total_notes) * 100
+        great_percent = (int(extended.great) / total_notes) * 100
+        desc_percent = (int(extended.decent) / total_notes) * 100
+        wo_percent = (int(extended.wayoff) / total_notes) * 100
+        miss_percent = (int(extended.miss) / total_notes) * 100
+
+        emb.add_field(name="<:mfc:472191264796966926> Fantastic",
+                  value="%s (%0.2f%%)" % (extended.fantastic, fant_percent), inline=True)
+        emb.add_field(name="<:pfc:472191264402702347> Excellent",
+                  value="%s (%0.2f%%)" % (extended.excellent, exec_percent), inline=True)
+        emb.add_field(name="<:gfc:472191264830259201> Great",
+                  value="%s (%0.2f%%)" % (extended.great, great_percent), inline=True)
+        if not extended.boysoff:
+            emb.add_field(name="😠 Decent",
+                  value="%s (%0.2f%%)" % (extended.decent, desc_percent), inline=True)
+            emb.add_field(name="<:CautionDDR:636661438085333002> Wayoff",
+                          value="%s (%0.2f%%)" % (extended.wayoff, wo_percent), inline=True)
+        else:
+            footer += "No Decent/WO. "
+        emb.add_field(name="<:eming:572201816792629267> Miss",
+                  value="%s (%0.2f%%)" % (extended.miss, miss_percent), inline=True)
+
+        if extended.cmod is not None:
+            footer += "CMod: %s " % extended.cmod
+    else:
+        footer += "Score was not submitted with judgement data. "
+
+    emb.set_footer(text=footer)
+    if song_info.cover_url is not None:
+        emb.set_thumbnail(url="https://groovestats.com/%s" % song_info.cover_url)
+
+    return emb
+
+
 class YeetException(Exception):
     pass
 
@@ -262,6 +316,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['last'] = self.last_command
         self.command_handlers['yeet'] = self.yeet
         self.command_handlers['debug_user'] = self.debug_user
+        self.command_handlers['gsrecent'] = self.itg_recent
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
@@ -788,6 +843,32 @@ class DDRBotClient(discord.Client):
             userlist = ''.join(["%s\t%i\n" % (x.name, x.ddrid) for x in players])
             user_message = "Found Users:\n```%s```" % userlist
             await message.channel.send(user_message)
+
+    async def itg_recent(self, message):
+        args = message.content.split(" ")
+        if len(args) < 2 or not RepresentsInt(args[1]):
+            await message.channel.send("You didn't specify a Groove Stats user ID!")
+            return
+        gsid = int(args[1])
+        await message.channel.send("Checking Groovestats user with ID **%i**" % gsid)
+        gsc = GrooveStatsClient()
+        recent = gsc.get_recent(gsid)
+
+        if len(recent) < 1:
+            await message.channel.send("That user has no recent submissions or does not exist.")
+            return
+
+        most_recent = recent[0]
+
+        if most_recent.is_gslaunch and most_recent.comment is None:
+            most_recent = gsc.get_detailed_for(most_recent)
+
+        emb = generate_itg_embed(most_recent, gsc.song_info(most_recent.chart_id, most_recent.game_id, diff_to_id(most_recent.difficulty)))
+
+        await message.channel.send(embed=emb)
+
+
+
 
     async def addreport_command(self, message):
         if not isinstance(message.channel, discord.TextChannel):

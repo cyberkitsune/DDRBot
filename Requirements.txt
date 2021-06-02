@@ -10,3 +10,4 @@ beautifulsoup4
 inflect
 word2number
 emoji
+git+git://github.com/cyberkitsune/Pygroovestats@master#egg=pygroovestats
