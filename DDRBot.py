@@ -270,7 +270,7 @@ def generate_itg_embed(groovestats_data, song_info):
 
     emb.set_footer(text=footer)
     if song_info.cover_url is not None:
-        emb.set_thumbnail(url="https://groovestats.com/%s" % song_info.cover_url)
+        emb.set_thumbnail(url="https://groovestats.com/%s" % urllib.parse.quote(song_info.cover_url))
 
     return emb
 
