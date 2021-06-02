@@ -237,7 +237,7 @@ def generate_itg_embed(groovestats_data, song_info):
     emb.add_field(name="📈 Score", value="%s" % groovestats_data.score, inline=True)
     footer = ''
     if groovestats_data.is_gslaunch:
-        total_notes = song_info.song_steps + song_info.song_holds + song_info.song_rolls + song_info.song_jumps
+        total_notes = song_info.song_steps
         extended = parse_score_judges(groovestats_data, total_notes)
 
         fant_percent = (int(extended.fantastic) / total_notes) * 100
