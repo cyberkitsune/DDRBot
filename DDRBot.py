@@ -351,6 +351,7 @@ class DDRBotClient(discord.Client):
         self.deep_ai = None
         intents = discord.Intents.default()
         intents.members = True
+        self.warned_eamuse = False
         super().__init__(intents=intents)
 
     async def on_ready(self):
@@ -1430,12 +1431,16 @@ class DDRBotClient(discord.Client):
                         print("[AUTO] I couldn't find user %s... Account deleted?" % user_id)
                         self.warned_auto_error.append(user_id)
             except EAMaintenanceException as ex:
-                print("[AUTO] E-Amusement is in maintenance, skipping...")
+                if not self.warned_eamuse:
+                    print("[AUTO] E-Amusement is in maintenance, skipping...")
+                    self.warned_eamuse = True
                 continue
             except Exception as ex:
                 if user_id not in self.warned_auto_error:
                     print("[AUTO] Exception fetching photos for %s\n%s" % (user_id, traceback.format_exc()))
                     self.warned_auto_error.append(user_id)
+            if self.warned_eamuse:
+                self.warned_eamuse = False
             else:
                 if user_id in self.warned_auto_error:
                     self.warned_auto_error.remove(user_id)
