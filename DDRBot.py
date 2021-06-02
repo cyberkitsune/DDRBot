@@ -865,7 +865,7 @@ class DDRBotClient(discord.Client):
 
         emb = generate_itg_embed(most_recent, gsc.song_info(most_recent.chart_id, most_recent.game_id, diff_to_id(most_recent.difficulty)))
 
-        await message.channel.send(embed=emb)
+        await message.channel.send("**%s**'s most recent Groovestats Submission:" % most_recent.user_name, embed=emb)
 
 
 
