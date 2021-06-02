@@ -389,6 +389,7 @@ class DDRBotClient(discord.Client):
         if not self.gstats_task_created:
             self.loop.create_task(self.gstats_task())
             self.gstats_task_created = True
+            print("[TASK] Created gstats thread")
         if not self.db_task_started:
             self.loop.create_task(self.db_task())
             self.db_task_started = True
@@ -1540,7 +1541,7 @@ class DDRBotClient(discord.Client):
 
         save_json("gstats.json", self.gstats_users)
         await asyncio.sleep(60)
-        self.loop.create_task(self.auto_task())
+        self.loop.create_task(self.gstats_task())
 
     async def db_task(self):
         db.create_tables([User, Score, IIDXScore])
