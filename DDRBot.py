@@ -251,7 +251,7 @@ def generate_itg_embed(groovestats_data, song_info):
                   value="%s (%0.2f%%)" % (extended.fantastic, fant_percent), inline=True)
         emb.add_field(name="<:pfc:472191264402702347> Excellent",
                   value="%s (%0.2f%%)" % (extended.excellent, exec_percent), inline=True)
-        emb.add_field(name="<:gfc:472191264830259201> Great",
+        emb.add_field(name="<:gfc:844785257852960778> Great",
                   value="%s (%0.2f%%)" % (extended.great, great_percent), inline=True)
         if not extended.boysoff:
             emb.add_field(name="😠 Decent",
