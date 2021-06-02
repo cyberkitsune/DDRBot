@@ -321,7 +321,7 @@ class DDRBotClient(discord.Client):
         self.command_handlers['yeet'] = self.yeet
         self.command_handlers['debug_user'] = self.debug_user
         self.command_handlers['gsrecent'] = self.itg_recent
-        self.command_handlers['gswatch'] = self.track_gstats
+        self.command_handlers['gslink'] = self.track_gstats
         if os.path.exists("ENABLE_SHITPOST"):
             self.command_handlers['meme'] = self.meme_manage
             self.command_handlers['memeon'] = self.shitpost_authorize
@@ -889,7 +889,7 @@ class DDRBotClient(discord.Client):
         args = message.content.split(" ")
         if len(args) < 2 or not RepresentsInt(args[1]):
             await message.channel.send("You didn't specify a Groove Stats user ID to assing yourself to!\n"
-                                       "Usage: `%sgswatch [your_groovestats_id]`\n"
+                                       "Usage: `%sgslink [your_groovestats_id]`\n"
                                        "You can find your Groove Stats ID in your profile url, after `id=`" % self.command_prefix)
             return
         gsid = int(args[1])
