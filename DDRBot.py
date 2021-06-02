@@ -264,7 +264,9 @@ def generate_itg_embed(groovestats_data, song_info):
                   value="%s (%0.2f%%)" % (extended.miss, miss_percent), inline=True)
 
         if extended.cmod is not None:
-            footer += "CMod: %s " % extended.cmod
+            footer += "CMod: %s. " % extended.cmod
+        if extended.rate is not None:
+            footer += "%s. " % extended.rate
     else:
         footer += "Score was not submitted with judgement data. "
 
