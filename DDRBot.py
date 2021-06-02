@@ -230,7 +230,7 @@ def generate_itg_embed(groovestats_data, song_info):
        """
     emb = discord.Embed()
 
-    emb.title = "<:ddr_arrow:687073061039505454> %s by %s (%sSP %s)" % (song_info.song_name, song_info.song_artist, groovestats_data.difficulty[0], groovestats_data.level)
+    emb.title = "<:ddr_arrow:687073061039505454> %s by %s (%sSP %s)" % (song_info.song_name, song_info.song_artist, groovestats_data.difficulty[0], song_info.song_difficulty)
     emb.description = "Played by %s" % groovestats_data.user_name
 
 
