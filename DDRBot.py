@@ -1417,7 +1417,7 @@ class DDRBotClient(discord.Client):
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
                 photos = await self.loop.run_in_executor(None, eal.get_screenshot_list)
             except EALoginException as ex:
-                if user_id not in self.warned_auto_error:
+                if str(user_id) not in self.warned_auto_error:
                     user = self.get_user(user_id)
                     if user is not None:
                         dmc = user.dm_channel
@@ -1427,10 +1427,10 @@ class DDRBotClient(discord.Client):
                                        "Please run %slink again to reconnect your account, or do `%sauto off` to disable this feature." %
                                        (self.command_prefix, self.command_prefix, self.command_prefix))
                         print("[AUTO] Warned %s about their login failure." % user.name)
-                        self.warned_auto_error.append(user_id)
+                        self.warned_auto_error.append(str(user_id))
                     else:
-                        print("[AUTO] I couldn't find user %s... Account deleted?" % user_id)
-                        self.warned_auto_error.append(user_id)
+                        print("[AUTO] I couldn't find discord user %s!" % user_id)
+                        self.warned_auto_error.append(str(user_id))
             except EAMaintenanceException as ex:
                 if not self.warned_eamuse:
                     print("[AUTO] E-Amusement is in maintenance, skipping...")
