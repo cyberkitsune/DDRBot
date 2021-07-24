@@ -390,7 +390,7 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.gstats_task())
             self.gstats_task_created = True
             print("[TASK] Created gstats thread")
-        if not self.db_task_started:
+        if not self.db_task_started and os.path.exists("DDR_GENIE_ON"):
             self.loop.create_task(self.db_task())
             self.db_task_started = True
             print("[TASK] Created DB task")
