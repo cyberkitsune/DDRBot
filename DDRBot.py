@@ -1243,9 +1243,7 @@ class DDRBotClient(discord.Client):
                     await self.db_add_queue.put(
                         DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
                                        photo['last_play_date'], game='iidx'))
-            else:
-                print("DDRGenie is not enabled so screenshot parsing is unavailiable")
-         
+
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
