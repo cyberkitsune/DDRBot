@@ -23,6 +23,9 @@ RUN pip3 install -r Requirements.txt
 RUN cd DDRGenie && pip3 install -r Requirements.txt
 RUN touch DDR_GENIE_ON
 
+#Set user folder permissions
+RUN chown -R bot_user:bot_user /home/bot_user
+
 #Switch to bot_user
 USER bot_user
 RUN ls -l ~/app
