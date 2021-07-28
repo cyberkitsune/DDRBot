@@ -4,8 +4,15 @@ This is a python-based bot to assist in providing various information about DDR 
 ## Running
 ```
 pip install -r Requirements.txt
-python DDRBot.py [bot token] [m573ssid]
+python DDRBot.py [discord bot token] [m573ssid cookie value]
 ```
+
+## Docker
+```
+docker build . -t ddrbot
+docker run -it ddrbot [discord bot token] [m573ssid cookie value]
+```
+
 ## Features
 * Arcade Monitoring (Last played reporting)
 * E-Amusement Screenshot Scraping

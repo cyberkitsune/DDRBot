@@ -390,7 +390,7 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.gstats_task())
             self.gstats_task_created = True
             print("[TASK] Created gstats thread")
-        if not self.db_task_started:
+        if not self.db_task_started and os.path.exists("DDR_GENIE_ON"):
             self.loop.create_task(self.db_task())
             self.db_task_started = True
             print("[TASK] Created DB task")
@@ -1236,12 +1236,14 @@ class DDRBotClient(discord.Client):
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
-            if 'dance' in photo['game_name'].lower():
-                await self.db_add_queue.put(DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
-            if 'beatmania' in photo['game_name'].lower():
-                await self.db_add_queue.put(
-                    DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
-                                   photo['last_play_date'], game='iidx'))
+            if os.path.exists("DDR_GENIE_ON"):
+                if 'dance' in photo['game_name'].lower():
+                    await self.db_add_queue.put(DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
+                if 'beatmania' in photo['game_name'].lower():
+                    await self.db_add_queue.put(
+                        DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
+                                       photo['last_play_date'], game='iidx'))
+
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
