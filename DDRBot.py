@@ -390,7 +390,7 @@ class DDRBotClient(discord.Client):
             self.loop.create_task(self.gstats_task())
             self.gstats_task_created = True
             print("[TASK] Created gstats thread")
-        if not self.db_task_started:
+        if not self.db_task_started and os.path.exists("DDR_GENIE_ON"):
             self.loop.create_task(self.db_task())
             self.db_task_started = True
             print("[TASK] Created DB task")
@@ -1236,12 +1236,14 @@ class DDRBotClient(discord.Client):
             data = eal.get_jpeg_data_for(photo['file_path'])
             screenshot_files.append(discord.File(io.BytesIO(data), '%s-%s.jpg' % ((photo['game_name'], photo['last_play_date']))))
             archive_screenshot(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), data)
-            if 'dance' in photo['game_name'].lower():
-                await self.db_add_queue.put(DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
-            if 'beatmania' in photo['game_name'].lower():
-                await self.db_add_queue.put(
-                    DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
-                                   photo['last_play_date'], game='iidx'))
+            if os.path.exists("DDR_GENIE_ON"):
+                if 'dance' in photo['game_name'].lower():
+                    await self.db_add_queue.put(DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']), photo['last_play_date']))
+                if 'beatmania' in photo['game_name'].lower():
+                    await self.db_add_queue.put(
+                        DBTaskWorkItem(message.author.id, '%s-%s.jpg' % (photo['game_name'], photo['last_play_date']),
+                                       photo['last_play_date'], game='iidx'))
+
         if len(screenshot_files) > 10:
             screenshot_files = divide_chunks(screenshot_files, 10)
             await message.channel.send("Your screenshots since last check:")
@@ -1417,7 +1419,7 @@ class DDRBotClient(discord.Client):
                 eal = EALink(cookies=(self.linked_eamuse[str(user_id)][0], self.linked_eamuse[str(user_id)][1]))
                 photos = await self.loop.run_in_executor(None, eal.get_screenshot_list)
             except EALoginException as ex:
-                if user_id not in self.warned_auto_error:
+                if str(user_id) not in self.warned_auto_error:
                     user = self.get_user(user_id)
                     if user is not None:
                         dmc = user.dm_channel
@@ -1427,10 +1429,10 @@ class DDRBotClient(discord.Client):
                                        "Please run %slink again to reconnect your account, or do `%sauto off` to disable this feature." %
                                        (self.command_prefix, self.command_prefix, self.command_prefix))
                         print("[AUTO] Warned %s about their login failure." % user.name)
-                        self.warned_auto_error.append(user_id)
+                        self.warned_auto_error.append(str(user_id))
                     else:
-                        print("[AUTO] I couldn't find user %s... Account deleted?" % user_id)
-                        self.warned_auto_error.append(user_id)
+                        print("[AUTO] I couldn't find discord user %s!" % user_id)
+                        self.warned_auto_error.append(str(user_id))
             except EAMaintenanceException as ex:
                 if not self.warned_eamuse:
                     print("[AUTO] E-Amusement is in maintenance, skipping...")
